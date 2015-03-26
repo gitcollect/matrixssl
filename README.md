@@ -1,5 +1,6 @@
 # MatrixSSL
 Lightweight Embedded SSL/TLS Implementation
+Download GPL2 source: http://matrixssl.org/download.html
 # Overview
 MatrixSSL has been continuously maintained since 2004. It is the first open source small footprint SSL stack. Until recently, releases were tracked on http://freecode.com/projects/matrixssl
 
