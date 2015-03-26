@@ -1,14 +1,15 @@
 # MatrixSSL
 Lightweight Embedded SSL/TLS Implementation
 
-Download GPL2 source: http://matrixssl.org/download.html
+## Download
+[![Download](https://img.shields.io/badge/matrixssl-3.7.1-blue.svg)](http://matrixssl.org/download.html)
 
-# Overview
+## Overview
 MatrixSSL has been continuously maintained since 2004. It is the first open source small footprint SSL stack. Until recently, releases were tracked on http://freecode.com/projects/matrixssl
 
 MatrixSSL is an embedded SSL and TLS implementation designed for small footprint devices and applications requiring low overhead per connection. The library is less than 50Kb on disk with cipher suites. It includes client and server support through TLS 1.2, mutual authentication, session resumption, and implementations of RSA, ECC, AES, SHA1, SHA-256 and more. The source is well documented and contains portability layers for additional operating systems, cipher suites, and cryptography providers.
 
-# Features
+## Features
 + < 50KB total footprint with crypto provider
 + SSL 3.0 and TLS 1.0, 1.1 and 1.2 server and client support
 + Included crypto library - RSA, ECC, AES, 3DES, ARC4, SHA1, SHA256, MD5
