@@ -1,5 +1,5 @@
 
-![MatrixSSL Banner](http://www.peersec.com/matrixSSL.jpg)
+![MatrixSSL Banner](http://www.matrixssl.org/matrixssl.jpg)
 
 Lightweight Embedded SSL/TLS Implementation
 
