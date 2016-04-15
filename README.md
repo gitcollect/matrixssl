@@ -3,8 +3,7 @@
 
 Lightweight Embedded SSL/TLS Implementation
 
-## Download
-Source package at matrixssl.org: [![Download](https://img.shields.io/badge/matrixssl-3.7.2a-blue.svg)](http://matrixssl.org/download.html)
+*Official source repository of matrixssl.org*
 
 ## Overview
 MatrixSSL has been continuously maintained since 2002. It is the first open source small footprint SSL stack. Until recently, releases were tracked on http://freecode.com/projects/matrixssl
