@@ -1,0 +1,9 @@
+# Specify which files to substitute Format statements on export
+*.[chsS] export-subst
+*.ld export-subst
+*.sh export-subst
+*.mk export-subst
+Makefile export-subst
+.git* export-ignore
+
+

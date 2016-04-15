@@ -27,3 +27,32 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+
+#OS X
+*.DS_Store
+
+#MatrixSSL Additional Generated Files
+/core/memset_s.s
+/core/test/test
+/crypto/test/algorithmTest
+/crypto/test/dhperf/dhperf
+/crypto/test/eccperf/eccperf
+/crypto/test/rsaperf/rsaperf
+/crypto/test/sigVerify
+/crypto/test/throughputTest
+/matrixssl/test/certValidate
+/matrixssl/test/sslTest
+/apps/dtls/dtlsClient
+/apps/dtls/dtlsServer
+/apps/ssl/client
+/apps/ssl/server
+

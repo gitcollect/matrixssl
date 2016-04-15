@@ -1,0 +1,28 @@
+For detailed information, see Getting Started Guide
+
+Quick Start for Linux / Mac OS X
+====
+
+Configuration is done by manually editing the *Config.h files:
+core/coreConfig.h
+crypto/cryptoConfig.h
+matrixssl/matrixsslConfig.h
+
+$ make
+Builds static libraries:
+core/libcore_s.a
+crypto/libcrypt_s.a
+matrixssl/libssl_s.a
+
+$ cd apps/ssl
+$ make
+Builds example client and server:
+apps/ssl/client
+apps/ssl/server
+
+$ ./server
+Runs server example, listening on port 4433
+
+$ ./runClient.sh
+Runs client example with default parameters
+
