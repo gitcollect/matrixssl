@@ -9,13 +9,25 @@
 MATRIXSSL_ROOT:=../..
 SERVER_SRC:=dtlsServer.c dtlsCommon.c
 CLIENT_SRC:=dtlsClient.c dtlsCommon.c
-SRC:=$(SERVER_SRC) $(CLIENT_SRC)
-
-include $(MATRIXSSL_ROOT)/common.mk
 
 # Generated files
 SERVER_EXE:=dtlsServer$(E)
 CLIENT_EXE:=dtlsClient$(E)
+
+#The Mac OS X Xcode project has a target name of 'server' or 'client'
+ifneq (,$(TARGET_NAME))
+ ifneq (,$(findstring server,$(TARGET_NAME)))
+  CLIENT_EXE:=
+  CLIENT_SRC:=
+ else
+  SERVER_EXE:=
+  SERVER_SRC:=
+ endif
+endif
+
+SRC:=$(SERVER_SRC) $(CLIENT_SRC)
+
+include $(MATRIXSSL_ROOT)/common.mk
 
 # Linked files
 STATIC:=\

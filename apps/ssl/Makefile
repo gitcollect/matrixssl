@@ -10,13 +10,24 @@ MATRIXSSL_ROOT:=../..
 SERVER_SRC:=server.c http.c
 CLIENT_SRC:=client.c http.c
 
-SRC:=$(SERVER_SRC) $(CLIENT_SRC)
-
-include $(MATRIXSSL_ROOT)/common.mk
-
 # Generated files
 SERVER_EXE:=server$(E)
 CLIENT_EXE:=client$(E)
+
+#The Mac OS X Xcode project has a target name of 'server' or 'client'
+ifneq (,$(TARGET_NAME))
+ ifneq (,$(findstring server,$(TARGET_NAME)))
+  CLIENT_EXE:=
+  CLIENT_SRC:=
+ else
+  SERVER_EXE:=
+  SERVER_SRC:=
+ endif
+endif
+
+SRC:=$(SERVER_SRC) $(CLIENT_SRC)
+
+include $(MATRIXSSL_ROOT)/common.mk
 
 # Linked files
 STATIC:=\
