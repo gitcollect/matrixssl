@@ -8,29 +8,28 @@ MatrixSSL Release Notes
 > *&copy; INSIDE Secure - 2016 - All Rights Reserved*
 
 1. FEATURES AND IMPROVEMENTS
-Simplified Configuration Options
-DTLS Combined Package
-CHACHA20_POLY1305 Cipher Suites
-Libsodium Crypto Provider
-Extended Master Secret
-Online Certificate Status Protocol
-TLS Fallback SCSV
-Trusted CA Indication Extension
-Removed gmt_unix_time from client and server random
-Removed support for SSLv2 CLIENT_HELLO messages
-Ephemeral ECC Key Caching
+  - Simplified Configuration Options
+  - DTLS Combined Package
+  - CHACHA20_POLY1305 Cipher Suites
+  - Libsodium Crypto Provider
+  - Extended Master Secret
+  - Online Certificate Status Protocol
+  - TLS Fallback SCSV
+  - Trusted CA Indication Extension
+  - Removed gmt_unix_time from client and server random
+  - Removed support for SSLv2 CLIENT_HELLO messages
+  - Ephemeral ECC Key Caching
 2. BUG FIXES
-Support for parsing large certificate blobs
-X.509 certificate parse fix for issuerUniqueID and subjectUniqueID
-Diffie-Hellman public key exchange bug
-SHA512 based Server Key Exchange signatures
-Allow independent hashSigAlg identifiers in Certificate Request message
-Improvements to DTLS Cookie handling
-Fixed key type verification for chosen cipher suite
-Validation of RSA Signature Creation
-Side Channel Vulnerability on RSA Cipher Suites
-Access Violation on Malicious TLS Record
-
+  - Support for parsing large certificate blobs
+  - X.509 certificate parse fix for issuerUniqueID and subjectUniqueID
+  - Diffie-Hellman public key exchange bug
+  - SHA512 based Server Key Exchange signatures
+  - Allow independent hashSigAlg identifiers in Certificate Request message
+  - Improvements to DTLS Cookie handling
+  - Fixed key type verification for chosen cipher suite
+  - Validation of RSA Signature Creation
+  - Side Channel Vulnerability on RSA Cipher Suites
+  - Access Violation on Malicious TLS Record
 
 #1 FEATURES AND IMPROVEMENTS
 
@@ -153,42 +152,42 @@ TLS cipher suites with CBC mode in TLS 1.1 and 1.2 could have an access violatio
 > *&copy; INSIDE Secure - 2015 - All Rights Reserved*
 
 1. FILE/API REORGANIZATION
-File Locations
-Crypto API
+  - File Locations
+  - Crypto API
 2. SECURITY IMPROVEMENTS
-Simplified Configuration
-Deprecated Ciphers
-Deprecated TLS Features
-Key Strength
-Ephemeral Cipher Suites Enabled by Default
-ECC Curve List
-Reordered cipher suite preferences
-memset_s()
-Handshake State Machine Improvements
+  - Simplified Configuration
+  - Deprecated Ciphers
+  - Deprecated TLS Features
+  - Key Strength
+  - Ephemeral Cipher Suites Enabled by Default
+  - ECC Curve List
+  - Reordered cipher suite preferences
+  - memset_s()
+  - Handshake State Machine Improvements
 3. FEATURES AND IMPROVEMENTS
-DTLS Protocol Included
-Optimized Diffie-Hellman performance
-Optimized EC signature generation performance
-OpenSSL Crypto Primitive Provider
-OpenSSL TLS API layer
-Reduced TLS session footprint
-X.509 Improvements
-PKCS#12 Key Parsing
-Improved certificate callback example
-Per digest control of HMAC algorithms
-Default high resolution timing
-Assert and Error Optimizations
+  - DTLS Protocol Included
+  - Optimized Diffie-Hellman performance
+  - Optimized EC signature generation performance
+  - OpenSSL Crypto Primitive Provider
+  - OpenSSL TLS API layer
+  - Reduced TLS session footprint
+  - X.509 Improvements
+  - PKCS#12 Key Parsing
+  - Improved certificate callback example
+  - Per digest control of HMAC algorithms
+  - Default high resolution timing
+  - Assert and Error Optimizations
 4. BUG FIXES
-64 bit little endian platforms
-X.509 KeyUsage extension
-X.509 date validation fix
-Fixed handshake parse issue
-TLS server sending old self-signed certificate
-Fixed ECC variable encoding bugs
-DHE_PSK compatibility
-AES-GCM with AESNI
-Library configuration test
-Windows psGetFileBuf
+  - 64 bit little endian platforms
+  - X.509 KeyUsage extension
+  - X.509 date validation fix
+  - Fixed handshake parse issue
+  - TLS server sending old self-signed certificate
+  - Fixed ECC variable encoding bugs
+  - DHE_PSK compatibility
+  - AES-GCM with AESNI
+  - Library configuration test
+  - Windows psGetFileBuf
 
 #1 FILE/API REORGANIZATION
 
