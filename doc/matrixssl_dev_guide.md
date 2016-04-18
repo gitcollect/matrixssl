@@ -731,6 +731,7 @@ Optional: For *OpenSSL* compatibility, enable:
 `USE_TLS_PSK_WITH_AES_128_CBC_SHA`
 
 **Code + Data Size	ARM Thumb 2 Results:**
+
 `PSK_AES128_SHA256` | `PSK_AES128_SHA1`
 :---:|:---:
 24,108 B | 25,771 B
