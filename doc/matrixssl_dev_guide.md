@@ -1,5 +1,7 @@
 #MatrixSSL Developer's Guide
+
 ![INSIDE Secure](http://www.insidesecure.com/extension/isinside/design/front/images/logo.png)
+
 **Version 3.8**
 *&copy; INSIDE Secure - 2016 - All Rights Reserved*
 
@@ -729,8 +731,8 @@ Optional: For *OpenSSL* compatibility, enable:
 `USE_TLS_PSK_WITH_AES_128_CBC_SHA`
 
 **Code + Data Size	ARM Thumb 2 Results:**
-PSK_AES128_SHA256 | PSK_AES128_SHA1
-:-:|:-:
+`PSK_AES128_SHA256` | `PSK_AES128_SHA1`
+:---:|:---:
 24,108 B | 25,771 B
 
 #5	SSL HANDSHAKING <i class="icon-exchange"></i>
@@ -917,7 +919,7 @@ The ALPN extension APIs will be available only if the `USE_ALPN` define in _matr
 Servers that wish to process ALPN extensions sent from a client must call the `matrixSslRegisterALPNCallback` function immediately after the session is created with `matrixSslNewServerSession`.  The timing of the registration is important so that the callback can be associated with the proper session context before the first handshake message from the client is passed to `matrixSslReceivedData`.
 
 The server ALPN callback that is registered with `matrixSslRegisterALPNCallback` must have a prototype of:
-```
+```C
 void ALPN_callback(void *ssl, short protoCount,	char *proto[MAX_PROTO_EXT], int32_t protoLen[MAX_PROTO_EXT], int32_t *index)
 ```
 `ssl`
@@ -942,7 +944,7 @@ To support this feature, clients must be able to generate the ALPN extension and
 To generate the ALPN extension, the API `matrixSslCreateALPNext` is used in conjunction with the `matrixSslNewHelloExtension` or `matrixSslLoadHelloExtension` framework.
 
 The `matrixSslCreateALPNext` API accepts an array of `unsigned char * ` string values (array length of `MAX_PROTO_EXT`) along with a companion array that hold the string lengths for the protocol list.  The function will format the protocols into the specified ALPN extension format and return that to the caller in the output parameters.  Once the extension has been created the client must load the extension using the `matrixSslLoadHelloExtension` API (`matrixSslNewHelloExtension` must have been called as well).  Finally, the extension must be passed to `matrixSslNewClientSession` in the extensions parameter.  Here is what the ALPN extension creation and session start might look like:
-```
+```C
 tlsExtension_t * extension;
 unsigned char	*alpn[MAX_PROTO_EXT];
 int32_t			alpnLen[MAX_PROTO_EXT];
@@ -1078,7 +1080,7 @@ The features in this section are minimally supported and should only be used in 
 EAP-FAST requires a  _Protected Access Credential (PAC)_ to be provisioned between the peers out-of-band (see [RFC5422](https://tools.ietf.org/html/rfc5422) _Dynamic Provisioning Using Flexible Authentication via Secure Tunneling Extensible Authentication Protocol (EAP-FAST)_. Like the `TLS_PSK` cipher suites, this _PAC_ consists of a secret key (pac-key) and a unique id associated with the key, both shared between the peers. However, the `TLS_PSK` ciphers are not used for this mechanism directly.
 
 The _PAC_ is exchanged between the peers by the client sending the  [Stateless Session Ticket Resumption](#61-stateless-session-ticket-resumption) specification: the `CLIENT_HELLO SessionTicket Extension`. However, a _PAC_ explicitly cannot be received by a client in the corresponding `NewSessionTicket` handshake message from the server, and must be provisioned out-of-band. Unfortunately this requires alteration of the standard TLS state machine logic.
-```
+```C
 sslSessionId_t	*sid;
 ssl_t 			*ssl;
 ...
