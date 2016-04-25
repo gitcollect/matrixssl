@@ -126,7 +126,7 @@ An internal verification function that determined whether the server key type wa
 ##Validation of RSA Signature Creation 
 An internal RSA validation of created signatures has been added to the library in the `psRsaEncryptPriv()` function.
 
-A security researcher has shown it is possible for RSA private key information to leak under some special failure circumstances.  Information on the exploit can be found here: https://people.redhat.com/~fweimer/rsa-crt-leaks.pdf
+Security researcher Florian Weimer has shown it is possible for RSA private key information to leak under some special failure circumstances.  Information on the exploit can be found here: https://people.redhat.com/~fweimer/rsa-crt-leaks.pdf
 
 The potential leak is only possible if a `DHE_RSA` based cipher suite is supported on the server side.  This is the only handshake combination in which an RSA signature is sent over the wire (during the `SERVER_KEY_EXCHANGE` message).  The signature itself must have been incorrectly generated for the exploit to be possible.
 
@@ -134,11 +134,11 @@ The additional signature validation test will now cause the TLS handshake to fai
 
 ##Side Channel Vulnerability on RSA Cipher Suites
 A Bleichenbacher variant attack, where certain information is leaked from the results of a RSA private key operation has been reported by a security researcher. The code has been updated to error without providing any information on the premaster contents.
-
+Thank you to Juraj Somorovsky, author of [TLS-Attacker](https://github.com/RUB-NDS/TLS-Attacker)
 > Note that other side channel attacks may still be possible as MatrixSSL non-FIPS crypto is not always constant-time.
 
 ##Access Violation on Malicious TLS Record
-TLS cipher suites with CBC mode in TLS 1.1 and 1.2 could have an access violation (read beyond memory) with a maliciously crafted message.
+TLS cipher suites with CBC mode in TLS 1.1 and 1.2 could have an access violation (read beyond memory) with a maliciously crafted message. Thank you to Juraj Somorovsky, author of [TLS-Attacker](https://github.com/RUB-NDS/TLS-Attacker)
 
 #3 KNOWN ISSUES
 
