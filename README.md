@@ -1,9 +1,14 @@
 
-![MatrixSSL Banner](http://www.matrixssl.org/matrixssl.jpg)
+![MatrixSSL Banner](http://www.matrixssl.org/assets/img/matrixssl_logo_transparent_md.png)
 
 Lightweight Embedded SSL/TLS Implementation
-
 *Official source repository of matrixssl.org*
+
+[![release](http://www.matrixssl.org/shield.svg)](https://github.com/matrixssl/matrixssl/releases)
+![license](https://img.shields.io/badge/License-GPL-blue.svg)
+
+[![tls-attacker-status](http://www.matrixssl.org/assets/svg/status-tls-attacker.svg)](https://github.com/RUB-NDS/TLS-Attacker)
+[![coverity-status](https://scan.coverity.com/projects/8611/badge.svg)](https://scan.coverity.com/projects/matrixssl-matrixssl)
 
 ## Overview
 MatrixSSL has been continuously maintained since 2002. It is the first open source small footprint SSL stack. Until recently, releases were tracked on http://freecode.com/projects/matrixssl
