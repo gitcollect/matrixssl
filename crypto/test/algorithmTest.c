@@ -86,11 +86,6 @@ static int32 psPrngTests(void)
 	return res < 0 ? res : PS_SUCCESS;
 }
 
-
-
-
-
-
 /******************************************************************************/
 #ifdef USE_AES
 #define AES_ITER	1000	/* For AES Block mode test */
@@ -892,10 +887,6 @@ int32 psAesTestGCM(void)
 	return res;
 }
 #endif /* USE_AES_GCM */
-
-
-
-
 
 #endif /* USE_AES */
 
@@ -2474,7 +2465,6 @@ static int32 psRsaEncryptTest(void)
 		i++) {
 		_psTraceInt("	%d bit test...", rsa[i].size * 8);
 
-
 	/* Start with getting both key halfs from the same source */
 	if (psRsaInitKey(pool, &privkey) < 0) {
 		return -1;
@@ -2519,7 +2509,6 @@ static int32 psRsaEncryptTest(void)
 
 	} /* key loop */
 
-
 	return PS_SUCCESS;
 }
 
@@ -2541,7 +2530,6 @@ static int32 psRsaSignTest(void)
 		i < sizeof(rsa)/sizeof(rsa[0]) && rsa[i].size >= (MIN_RSA_BITS / 8);
 		i++) {
 		_psTraceInt("	%d bit test...", rsa[i].size * 8);
-
 
 	psRsaInitKey(pool, &privkey);
 	psRsaParsePkcs1PrivKey(pool, rsa[i].key, rsa[i].keysize, &privkey);
@@ -4524,7 +4512,6 @@ static int32_t psEccTest(void)
 
 /******************************************************************************/
 
-
 /******************************************************************************/
 
 typedef struct {
@@ -4689,7 +4676,6 @@ static test_t tests[] = {
 
 {NULL
 , "***** PRF2 TESTS *****"},
-
 
 {NULL, ""}
 };

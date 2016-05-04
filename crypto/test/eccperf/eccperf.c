@@ -199,7 +199,6 @@ const static keyList_t keys[] = {
 	Main
 */
 
-
 #ifdef STATS
 	#include <unistd.h>
 	#include <fcntl.h>
@@ -250,6 +249,7 @@ int main(int argc, char **argv)
 		if (psEccParsePrivKey(misc, (unsigned char*)keys[i].key, keys[i].len,
 				&privkey, NULL) < 0) {
 			_psTrace("	FAILED OPERATION:ParsePriv\n");
+			exit(0);
 		}
 
 		/* Get random data to sign */

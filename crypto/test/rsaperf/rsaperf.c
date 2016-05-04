@@ -336,7 +336,6 @@ static keyList_t keys[] = {
 	Main
 */
 
-
 #ifdef STATS
 	#include <fcntl.h>
 #ifdef USE_HIGHRES_TIME
@@ -451,6 +450,7 @@ int main(int argc, char **argv)
 		memset(in, 0x0, keysize);
 
 		psGetTime(&start, NULL);
+		/* coverity[swapped_arguments] */
 		if (psRsaDecryptPub(pool, &privkey, out, keysize, in, 5, pkaInfo) < 0) {
 			_psTrace("	FAILED VERIFY OPERATION\n");
 		}
@@ -537,7 +537,6 @@ int main(int argc, char **argv)
 		psRsaClearKey(&privkey);
 		i++;
 	}
-
 
 #ifdef STATS
 	fclose(sfd);

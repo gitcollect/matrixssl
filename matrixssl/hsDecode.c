@@ -55,7 +55,6 @@ int32 parseClientHello(ssl_t *ssl, unsigned char **cp, unsigned char *end)
 	void			*pkiData = ssl->userPtr;
 #endif
 
-	
 	c = *cp;
 
 	/* First two bytes are the highest supported major and minor SSL versions */
@@ -144,8 +143,9 @@ int32 parseClientHello(ssl_t *ssl, unsigned char **cp, unsigned char *end)
 				ssl->err = SSL_ALERT_PROTOCOL_VERSION;
 				psTraceInfo("Can't support client's SSL version\n");
 				return MATRIXSSL_ERROR;
-#endif
+#else
 				ssl->minVer = SSL3_MIN_VER;
+#endif
 			}
 		} else if (compareMin == 0) {
 #ifdef DISABLE_SSLV3
@@ -515,7 +515,6 @@ SKIP_STANDARD_RESUMPTION:
 		}
 	}
 		
-
 	matrixSslSetKexFlags(ssl);
 
 	/* If we're resuming a handshake, then the next handshake message we
@@ -627,7 +626,7 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 	int32			rc, pubKeyLen;
 	unsigned char	*c;
 #ifdef USE_RSA_CIPHER_SUITE
-	unsigned char   R[SSL_HS_RSA_PREMASTER_SIZE - 2];
+	unsigned char	R[SSL_HS_RSA_PREMASTER_SIZE - 2];
 	psPool_t        *ckepkiPool = NULL;
 #endif
 #ifdef USE_PSK_CIPHER_SUITE
@@ -636,12 +635,11 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 #endif
 	void			*pkiData = ssl->userPtr;
 
-	
 	c = *cp;
 
 	/*	RSA: This message contains the premaster secret encrypted with the
 		server's public key (from the Certificate).  The premaster
-		secret is 48 bytes of random data, but the message may be longer
+		secret is 48 bytes of random data, but the message will be longer
 		than that because the 48 bytes are padded before encryption
 		according to PKCS#1v1.5.  After encryption, we should have the
 		correct length. */
@@ -678,7 +676,6 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 		}
 	}
 #endif /* USE_TLS */
-
 
 #ifdef USE_DHE_CIPHER_SUITE
 	if (ssl->flags & SSL_FLAGS_DHE_KEY_EXCH) {
@@ -968,8 +965,8 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 					return SSL_MEM_ERROR;
 				}
 
-				/**
-                @security Caution - the results of an RSA private key
+/**
+				@security Caution - the results of an RSA private key
 				decryption should never have any bearing on timing or response,
 				otherwise we can be vulnerable to a side channel attack.
 				@see http://web-in-security.blogspot.co.at/2014/08/old-attacks-on-new-tls-implementations.html
@@ -983,9 +980,8 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 				(through, e.g., timing, log files, or other channels.)"
 */
 				rc = psRsaDecryptPriv(ckepkiPool, &ssl->keys->privKey.key.rsa, c,
-					pubKeyLen, ssl->sec.premaster, ssl->sec.premasterSize,
-					pkiData);
-
+						pubKeyLen, ssl->sec.premaster, ssl->sec.premasterSize,
+						pkiData);
 				/* Step 1 of Bleichenbacher attack mitigation. We do it here
 				after the RSA op, but regardless of the result of the op. */
 				if (matrixCryptoGetPrngData(R, sizeof(R), ssl->userPtr) < 0) {
@@ -996,12 +992,13 @@ int32 parseClientKeyExchange(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 				/* Step 3
 				If the PKCS#1 padding is not correct, or the length of message
 				M is not exactly 48 bytes:
-				pre_master_secret = ClientHello.client_version || R
+					pre_master_secret = ClientHello.client_version || R
 				else
-				pre_master_secret = ClientHello.client_version || M[2..47]
+					pre_master_secret = ClientHello.client_version || M[2..47]
+
 				Note that explicitly constructing the pre_master_secret with the
-				client_version produces an invalid master_secret if the
-				client has sent the wrong version in the original pre_master_secret.
+				ClientHello.client_version produces an invalid master_secret if the
+ 				client has sent the wrong version in the original pre_master_secret.
 
 				Note: The version number in the PreMasterSecret is the version
 				offered by the client in the ClientHello.client_version, not the
@@ -1122,7 +1119,6 @@ int32 parseCertificateVerify(ssl_t *ssl,
 	psPool_t		*cvpkiPool = NULL;
 	void			*pkiData = ssl->userPtr;
 
-
 	c = *cp;
 	rc = 0;
 
@@ -1189,7 +1185,6 @@ int32 parseCertificateVerify(ssl_t *ssl,
 	certVerifyLen =  MD5_HASH_SIZE + SHA1_HASH_SIZE;
 #endif /* USE_TLS_1_2 */
 
-
 	if ((uint32)(end - c) < 2) {
 		ssl->err = SSL_ALERT_DECODE_ERROR;
 		psTraceInfo("Invalid Certificate Verify message\n");
@@ -1252,8 +1247,6 @@ int32 parseCertificateVerify(ssl_t *ssl,
 	} else {
 #endif /* USE_ECC */
 #ifdef USE_RSA
-
-
 
 #ifdef USE_TLS_1_2
 		if (ssl->flags & SSL_FLAGS_TLS_1_2) {
@@ -1387,10 +1380,11 @@ int32 parseServerHello(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 					ssl->err = SSL_ALERT_PROTOCOL_VERSION;
 					psTraceInfo("Server wants to talk TLS1.1 but it's disabled\n");
 					return MATRIXSSL_ERROR;
-#endif
+#else
 					ssl->reqMinVer = ssl->minVer;
 					ssl->minVer = TLS_1_1_MIN_VER;
 					goto PROTOCOL_DETERMINED;
+#endif
 				}
 			}
 #endif /* USE_TLS_1_2 */
@@ -1710,7 +1704,6 @@ int32 parseServerKeyExchange(ssl_t *ssl,
 #ifdef USE_DHE_CIPHER_SUITE
 	/*	Check the DH status.  Could also be a PSK_DHE suite */
 	if (ssl->flags & SSL_FLAGS_DHE_KEY_EXCH) {
-
 
 #ifdef USE_PSK_CIPHER_SUITE
 			if (ssl->flags & SSL_FLAGS_PSK_CIPHER) {
@@ -2052,10 +2045,6 @@ int32 parseServerKeyExchange(ssl_t *ssl,
 					(uint32)(sigStop - sigStart));
 				psSha1Final(&digestCtx.sha1, hsMsgHash + MD5_HASH_SIZE);
 #endif /* USE_TLS_1_2 */
-
-
-
-
 
 
 #ifdef USE_TLS_1_2
@@ -2798,7 +2787,6 @@ int32 parseCertificate(ssl_t *ssl, unsigned char **cp, unsigned char *end)
 	int32			rc, i, certChainLen, parseLen = 0;
 	void			*pkiData = ssl->userPtr;
 
-	
 	psTraceStrHs(">>> %s parsing CERTIFICATE message\n",
 		(ssl->flags & SSL_FLAGS_SERVER) ? "Server" : "Client");
 	
@@ -2941,7 +2929,6 @@ SKIP_CERT_CHAIN_INIT:
 	rc = matrixValidateCerts(ssl->hsPool, ssl->sec.cert,
 		ssl->keys == NULL ? NULL : ssl->keys->CAcerts, ssl->expectedName,
 		&foundIssuer, pkiData, ssl->memAllocPtr);
-
 
 	if (rc == PS_MEM_FAIL) {
 		ssl->err = SSL_ALERT_INTERNAL_ERROR;

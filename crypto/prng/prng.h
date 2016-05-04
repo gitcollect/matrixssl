@@ -35,7 +35,6 @@
 #ifndef _h_PS_PRNG
 #define _h_PS_PRNG
 
-
 #ifdef USE_YARROW
 /*
 	AES SHA-1 implementation
@@ -73,7 +72,6 @@ typedef struct {
 #endif
 	uint32		bytecount; /* number of bytes read from this context */
 } psRandom_t;
-
 
 /******************************************************************************/
 #endif /* _h_PS_PRNG */

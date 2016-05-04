@@ -294,9 +294,9 @@ __inline static int32_t pSha2(const unsigned char *key, uint16_t keyLen,
 		}
 		if (i == keyIter - 1) {
 			memcpy(out + (hashSize * i), mac,
-				outLen - (hashSize * i));
+				outLen - ((uint32_t)hashSize * i));
 		} else {
-			memcpy(out + (hashSize * i), mac, hashSize);
+			memcpy(out + ((uint32_t)hashSize * i), mac, hashSize);
 #ifdef USE_SHA384
 			if (flags & CRYPTO_FLAGS_SHA3) {
 				if ((rc = psHmacSha384(key, keyLen, a, hashSize, a,

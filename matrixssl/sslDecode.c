@@ -116,7 +116,8 @@ int32 matrixSslDecode(ssl_t *ssl, unsigned char **buf, uint32 *len,
 					unsigned char *alertDescription)
 {
 	unsigned char	*c, *p, *end, *pend, *ctStart, *origbuf;
-	unsigned char	*mac, macError;
+	unsigned char	*mac;
+	volatile unsigned char   macError;
 	int32			rc;
 	unsigned char	padLen;
 #ifdef USE_CLIENT_SIDE_SSL
@@ -144,7 +145,6 @@ int32 matrixSslDecode(ssl_t *ssl, unsigned char **buf, uint32 *len,
 
 	p = pend = mac = ctStart = NULL;
 	padLen = 0;
-
 
 /*
 	This flag is set if the previous call to this routine returned an SSL_FULL
@@ -588,26 +588,27 @@ ADVANCE_TO_APP_DATA:
 	/* Sanity check ct len.  Step 1 of Lucky 13 MEE-TLS-CBC decryption.
 		max{b, t + 1} is always "t + 1" because largest possible blocksize
 		is 16 and smallest possible tag len is 16. Multiple of block size test
-		is done in decrypt */
+		is done in decrypt. We return the identical error as if the mac failed,
+		since this is a sanity check for pad and mac verification. */
 	if ((ssl->flags & SSL_FLAGS_READ_SECURE) && (ssl->deBlockSize > 1) &&
 			!(ssl->flags & SSL_FLAGS_AEAD_R)) {
 #ifdef USE_TLS_1_1
 		if (ssl->flags & SSL_FLAGS_TLS_1_1) {
 			if (ssl->rec.len < (ssl->deMacSize + 1 + ssl->deBlockSize)) {
-				ssl->err = SSL_ALERT_DECODE_ERROR;
+				ssl->err = SSL_ALERT_BAD_RECORD_MAC;
 				psTraceInfo("Ciphertext length failed sanity\n");
 				goto encodeResponse;
 			}
 		} else {
 			if (ssl->rec.len < (ssl->deMacSize + 1)) {
-				ssl->err = SSL_ALERT_DECODE_ERROR;
+				ssl->err = SSL_ALERT_BAD_RECORD_MAC;
 				psTraceInfo("Ciphertext length failed sanity\n");
 				goto encodeResponse;
 			}
 		}
 #else
 		if (ssl->rec.len < (ssl->deMacSize + 1)) {
-			ssl->err = SSL_ALERT_DECODE_ERROR;
+			ssl->err = SSL_ALERT_BAD_RECORD_MAC;
 			psTraceInfo("Ciphertext length failed sanity\n");
 			goto encodeResponse;
 		}
@@ -756,6 +757,7 @@ ADVANCE_TO_APP_DATA:
 				for (rc = (256 - padLen) - 1; rc > 0; rc--) {
 					/* make this test look like the others */
 					if ((unsigned char)rc == padLen) {
+						/* coverity[unused_value] */
 						macError = 1; /* not really an error.  reset below */
 					}
 				}
@@ -1154,6 +1156,18 @@ ADVANCE_TO_APP_DATA:
 		*alertLevel = *p; p++;
 		*alertDescription = *p; p++;
 		*len =  2;
+#ifdef USE_SSL_HANDSHAKE_MSG_TRACE
+		if (ssl->flags & SSL_FLAGS_SERVER) {
+			psTraceHs(">>> Server");
+		} else {
+			psTraceHs(">>> Client");
+		}
+		if (*alertDescription == SSL_ALERT_CLOSE_NOTIFY) {
+			psTraceHs(" parsing ALERT (CLOSE_NOTIFY) message\n");
+		} else {
+			psTraceHs(" parsing ALERT message\n");
+		}
+#endif
 		psTraceIntInfo("Received alert %d\n", (int32)(*alertDescription));
 /*
 		If the alert is fatal, or is a close message (usually a warning),
@@ -1371,7 +1385,6 @@ ADVANCE_TO_APP_DATA:
 		ssl->decState = SSL_HS_DONE;
 		return SSL_PROCESS_DATA;
 
-
 	default:
 		/* Falls to error below */
 		break;
@@ -1565,7 +1578,6 @@ static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 	int32			rc;
 	uint32			hsLen;
 	unsigned char	hsMsgHash[SHA512_HASH_SIZE];
-
 
 #ifdef USE_DTLS
 	uint32		fragLen;
@@ -1848,8 +1860,6 @@ parseHandshake:
 			}
 		}
 #endif /* USE_DTLS */
-
-
 
 		ssl->err = SSL_ALERT_UNEXPECTED_MESSAGE;
 		psTraceIntInfo("Out-of-order handshake message: %d\n", hsType);
@@ -2408,9 +2418,10 @@ SKIP_HSHEADER_PARSE:
 	}
 
 #ifdef USE_DTLS
-	ssl->lastMsn = msn; /* MSN of last message sucessfully parsed */
+	if (ssl->flags & SSL_FLAGS_DTLS) {
+		ssl->lastMsn = msn; /* MSN of last message sucessfully parsed */
+	}
 #endif /* USE_DTLS */
-
 
 /*
 	if we've got more data in the record, the sender has packed
@@ -2456,7 +2467,6 @@ static int32 parseSingleCert(ssl_t *ssl, unsigned char *c, unsigned char *end,
 }
 #endif /* USE_CERT_CHAIN_PARSING */
 #endif /* USE_CLIENT_SIDE_SSL || USE_CLIENT_AUTH */
-
 
 /******************************************************************************/
 

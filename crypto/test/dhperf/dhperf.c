@@ -130,7 +130,6 @@ static keyList_t keys[] = {
 	Main
 */
 
-
 int main(int argc, char **argv)
 {
 	psPool_t		*pool, *misc;

@@ -589,15 +589,17 @@ enum {
 };
 int32 dtlsChkReplayWindow(ssl_t *ssl, unsigned char *seq64)
 {
-	unsigned long diff, seq, lastSeq;
+	uint32_t diff, seq, lastSeq;
 	unsigned char *ls64;
 
 /*
 	TODO DTLS - We truncate 48 bit sequence to 32bits to make it simpler here
 */
-	seq = (seq64[2] << 24) + (seq64[3] << 16) + (seq64[4] << 8) + seq64[5];
+	seq = ((uint32_t)seq64[2] << 24) + ((uint32_t)seq64[3] << 16) +
+		((uint32_t)seq64[4] << 8) + (uint32_t)seq64[5];
 	ls64 = ssl->lastRsn;
-	lastSeq = (ls64[2] << 24) + (ls64[3] << 16) + (ls64[4] << 8) + ls64[5];
+	lastSeq = ((uint32_t)ls64[2] << 24) + ((uint32_t)ls64[3] << 16) +
+		((uint32_t)ls64[4] << 8) + (uint32_t)ls64[5];
 
 	if (seq == 0) {
 		/* Need to differentiate between initial, duplicate, and epoch shift */

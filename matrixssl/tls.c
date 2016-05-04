@@ -714,7 +714,6 @@ int32 matrixSslNewHelloExtension(tlsExtension_t **extension, void *userPoolPtr)
 	psPool_t		*pool = NULL;
 	tlsExtension_t	*ext;
 
-
 	ext = psMalloc(pool, sizeof(tlsExtension_t));
 	if (ext == NULL) {
 		return PS_MEM_FAIL;

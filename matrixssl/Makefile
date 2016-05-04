@@ -11,6 +11,7 @@ include $(MATRIXSSL_ROOT)/common.mk
 
 SRC:=\
 	cipherSuite.c \
+	dtls.c \
 	extDecode.c \
 	hsDecode.c \
 	hsHash.c \
@@ -22,9 +23,6 @@ SRC:=\
 	sslEncode.c \
 	sslv3.c \
 	tls.c
-#DTLS
-SRC+=dtls.c
-#DTLS
 
 # Generated files
 STATIC:=libssl_s.a

@@ -587,8 +587,6 @@ static int ClientHelloExt(ssl_t *ssl, unsigned short extType, unsigned short ext
 #endif
 
 
-
-
 	/**************************************************************************/
 
 	default:
@@ -1010,7 +1008,6 @@ static int ServerHelloExt(ssl_t *ssl, unsigned short extType, unsigned short ext
 		break;
 #endif /* ENABLE_SECURE_REHANDSHAKES */
 
-
 	case EXT_STATUS_REQUEST:
 		if (ssl->extFlags.req_status_request) {
 			/* Weed out the unsolicited status_request */
@@ -1045,7 +1042,6 @@ static int ServerHelloExt(ssl_t *ssl, unsigned short extType, unsigned short ext
 	return rc;
 }
 #endif
-
 
 	/**************************************************************************/
 

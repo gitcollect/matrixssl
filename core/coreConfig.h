@@ -35,7 +35,6 @@
 #ifndef _h_PS_CORECONFIG
 #define _h_PS_CORECONFIG
 
-
 /******************************************************************************/
 /* Configurable features */
 /******************************************************************************/
@@ -60,16 +59,10 @@
 //#define HALT_ON_PS_ERROR /* NOT RECOMMENDED FOR PRODUCTION BUILDS */
 #endif
 
-
 /**
 	Include the psCoreOsdepMutex family of APIs
 */
-#ifndef NO_MULTITHREADING
 //#define USE_MULTITHREADING
-#endif /* NO_MULTITHREADING */
-
-
-
 
 #endif /* _h_PS_CORECONFIG */
 

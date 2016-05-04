@@ -92,7 +92,7 @@ static unsigned char	g_httpResponseHdr[] = "HTTP/1.0 200 OK\r\n"
 
 static int32 selectLoop(sslKeys_t *keys, SOCKET lfd);
 static int32 httpWriteResponse(httpConn_t *conn);
-static void setSocketOptions(SOCKET fd);
+static int setSocketOptions(SOCKET fd);
 static SOCKET lsocketListen(short port, int32 *err);
 static void closeConn(httpConn_t *cp, int32 reason);
 
@@ -116,7 +116,8 @@ static void displayStats(void)
 	if (g_handshakes > s_handshakes) {
 		t = time(NULL);
 		if (t > s_t) {
-			printf("%llu CPS\n", (g_handshakes - s_handshakes) / (t - s_t));
+			printf("%u CPS\n",
+				(uint32_t)(g_handshakes - s_handshakes) / (uint32_t)(t - s_t));
 			s_handshakes = g_handshakes;
 			s_t = t;
 		}
@@ -215,8 +216,15 @@ static int32 selectLoop(sslKeys_t *keys, SOCKET lfd)
 			if (fd == INVALID_SOCKET) {
 				break;	/* Nothing more to accept; next listener */
 			}
-			setSocketOptions(fd);
+			if (setSocketOptions(fd) < 0) {
+				close(fd);
+				return PS_PLATFORM_FAIL;
+			}
 			cp = malloc(sizeof(httpConn_t));
+			if (cp == NULL) {
+				close(fd);
+				return PS_MEM_FAIL;
+			}
 			memset(cp, 0x0, sizeof(httpConn_t));
 
 			memset(&options, 0x0, sizeof(sslSessOpts_t));
@@ -224,12 +232,11 @@ static int32 selectLoop(sslKeys_t *keys, SOCKET lfd)
 
 			if ((rc = matrixSslNewServerSession(&cp->ssl, keys,	NULL,
 					&options)) < 0) {
-				close(fd); fd = INVALID_SOCKET;
+				close(fd);
 				continue;
 			}
 
 			cp->fd = fd;
-			fd = INVALID_SOCKET;
 			cp->timeout = SSL_TIMEOUT;
 			psGetTime(&cp->time, NULL);
 			cp->parsebuf = NULL;
@@ -406,7 +413,8 @@ PROCESS_MORE:
 					if (len >= 15 &&
 							strncmp((char*)buf, "MATRIX_SHUTDOWN", 15) == 0) {
 						g_exitFlag = 1;
-						matrixSslEncodeClosureAlert(cp->ssl);
+						rc = matrixSslEncodeClosureAlert(cp->ssl);
+						psAssert(rc >= 0);
 						_psTrace("Got MATRIX_SHUTDOWN.  Exiting\n");
 						goto WRITE_MORE;
 					}
@@ -428,7 +436,8 @@ PROCESS_MORE:
 						 close after parsing a single HTTP request */
 						/* Ignore return of closure alert, it's optional */
 #ifdef SEND_CLOSURE_ALERT
-//						matrixSslEncodeClosureAlert(cp->ssl);
+//						rc = matrixSslEncodeClosureAlert(cp->ssl);
+//						psAssert(rc >= 0);
 #endif
 						rc = matrixSslProcessedData(cp->ssl, &buf, (uint32*)&len);
 						if (rc > 0) {
@@ -513,11 +522,15 @@ static int32 httpWriteResponse(httpConn_t *cp)
 		*/
 		while (cp->bytes_sent < cp->bytes_requested) {
 			len = cp->bytes_requested - cp->bytes_sent;
+			if (len < 0) {
+				return PS_MEM_FAIL;
+			}
 			if (len > RESPONSE_REC_LEN) {
 				len = RESPONSE_REC_LEN;
 			}
-			psAssert(len > 0);
-			rc = matrixSslGetWritebuf(ssl, &buf, len);
+			if ((rc = matrixSslGetWritebuf(ssl, &buf, len)) < 1) {
+				return PS_MEM_FAIL;
+			}
 			if (rc < len) {
 				len = rc; /* could have been shortened due to max_frag */
 			}
@@ -536,12 +549,11 @@ static int32 httpWriteResponse(httpConn_t *cp)
 				generated records. We could flush after each record encode,
 				or only on a multiple of record encodes.
 			*/
-			if ((len = matrixSslGetOutdata(ssl, &buf)) > (RESPONSE_REC_LEN * 4)) {
+			if (matrixSslGetOutdata(ssl, &buf) > (RESPONSE_REC_LEN * 4)) {
 				if ((len = (int32)send(cp->fd, buf, len, MSG_DONTWAIT)) > 0) {
 					rc = matrixSslSentData(ssl, len);
 //					psAssert(rc != MATRIXSSL_REQUEST_SEND); /* Some data remains */
 				}
-//				psAssert(len > 0); /* Probably an EWOULDBLOCK */
 			}
 		}
 		return MATRIXSSL_REQUEST_SEND;
@@ -591,7 +603,6 @@ int32 main(int32 argc, char **argv)
 	WSAStartup(MAKEWORD(1, 1), &wsaData);
 #endif
 
-
 	DLListInit(&g_conns);
 	g_exitFlag = 0;
 	lfd = INVALID_SOCKET;
@@ -607,7 +618,6 @@ int32 main(int32 argc, char **argv)
 		return rc;
 	}
 	
-
 	if (matrixSslNewKeys(&keys, NULL) < 0) {
 		return -1;
 	}
@@ -636,6 +646,15 @@ int32 main(int32 argc, char **argv)
 	while (!g_exitFlag) {
 		selectLoop(keys, lfd);
 		displayStats();
+	}
+
+	/* Close any active connections */
+	while (!DLListIsEmpty(&g_conns)) {
+		httpConn_t		*cp;
+		DLListEntry		*pList;
+		pList = DLListGetHead(&g_conns);
+		cp = DLListGetContainer(pList, httpConn_t, List);
+		closeConn(cp, PS_SUCCESS);
 	}
 
 L_EXIT:
@@ -693,7 +712,7 @@ static void closeConn(httpConn_t *cp, int32 reason)
  */
 static SOCKET lsocketListen(short port, int32 *err)
 {
-	struct sockaddr_in	addr;
+	struct sockaddr_in	addr = { 0 };
 	SOCKET				fd;
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
@@ -702,17 +721,21 @@ static SOCKET lsocketListen(short port, int32 *err)
 		return INVALID_SOCKET;
 	}
 
-	setSocketOptions(fd);
-
+	if (setSocketOptions(fd) < 0) {
+		close(fd);
+		return INVALID_SOCKET;
+	}
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = INADDR_ANY;
 	if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+		close(fd);
 		_psTrace("Can't bind socket. Port in use or insufficient privilege\n");
 		*err = SOCKET_ERRNO;
 		return INVALID_SOCKET;
 	}
 	if (listen(fd, SOMAXCONN) < 0) {
+		close(fd);
 		_psTrace("Error listening on socket\n");
 		*err = SOCKET_ERRNO;
 		return INVALID_SOCKET;
@@ -727,27 +750,40 @@ static SOCKET lsocketListen(short port, int32 *err)
 	Set the REUSE flag to minimize the number of sockets in TIME_WAIT
 	Then we set REUSEADDR, NODELAY and NONBLOCK on the socket
 */
-static void setSocketOptions(SOCKET fd)
+static int setSocketOptions(SOCKET fd)
 {
-	int32 rc;
+	int rc;
 
 #ifdef POSIX
-	fcntl(fd, F_SETFD, FD_CLOEXEC);
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #endif
 	rc = 1;
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&rc, sizeof(rc));
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&rc, sizeof(rc)) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #ifdef POSIX
 	rc = 1;
-	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&rc, sizeof(rc));
-	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&rc, sizeof(rc)) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
+	if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #elif defined(WIN32)
 	rc = 1;		/* 1 for non-block, 0 for block */
-	ioctlsocket(fd, FIONBIO, &rc);
+	if (ioctlsocket(fd, FIONBIO, &rc) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #endif
 #ifdef __APPLE__  /* MAC OS X */
 	rc = 1;
-	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&rc, sizeof(rc));
+	if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&rc, sizeof(rc)) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #endif
+	return PS_SUCCESS;
 }
 
 #ifdef POSIX

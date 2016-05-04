@@ -34,10 +34,7 @@
 
 #include "../cryptoApi.h"
 
-#if defined(USE_MATRIX_RSA) || defined(USE_CL_RSA) \
- 	|| defined(USE_MATRIX_ECC) \
- 	|| defined(USE_MATRIX_DH) || defined(USE_CL_DH) \
- 	|| defined(USE_QUICK_ASSIST_RSA) || defined(USE_QUICK_ASSIST_ECC)
+#if defined(USE_MATRIX_RSA) || defined(USE_MATRIX_ECC) || defined(USE_MATRIX_DH) || defined(USE_CL_RSA) || defined(USE_CL_DH) || defined(USE_QUICK_ASSIST_RSA) || defined(USE_QUICK_ASSIST_ECC)
 
 static int32_t pstm_mul_2d(const pstm_int *a, int16_t b, pstm_int *c);
 
@@ -164,6 +161,20 @@ int32_t pstm_copy(const pstm_int * a, pstm_int * b)
 	/* copy used count and sign */
 	b->used = a->used;
 	b->sign = a->sign;
+	return PSTM_OKAY;
+}
+
+/******************************************************************************/
+/**
+	b = |a|.
+	Copy 'a' to 'b' and make positive.
+*/
+int32_t pstm_abs(const pstm_int *a, pstm_int *b)
+{
+	if (pstm_copy(a, b) != PSTM_OKAY) {
+		return PSTM_MEM;
+	}
+	b->sign = 0;
 	return PSTM_OKAY;
 }
 
@@ -2242,7 +2253,9 @@ int32_t pstm_invmod(psPool_t *pool, const pstm_int *a, const pstm_int *b, pstm_i
 	}
 
 	/* we need y = |a| */
-	pstm_abs(a, &y);
+	if ((res = pstm_abs(a, &y)) != PSTM_OKAY) {
+		goto LBL_X;
+	}
 
 	/* 3. u=x, v=y, A=1, B=0, C=0,D=1 */
 	if ((res = pstm_init_copy(pool, &u, &x, 0)) != PSTM_OKAY) {
@@ -2360,9 +2373,7 @@ LBL_X: pstm_clear(&x);
 
 /******************************************************************************/
 
-
-#endif /* USE_MATRIX_RSA || USE_CL_RSA || USE_MATRIX_ECC || USE_MATRIX_DH \
-		  || USE_CL_DH || USE_QUICK_ASSIST_RSA || USE_QUICK_ASSIST_ECC */
+#endif /* USE_MATRIX_RSA || USE_MATRIX_ECC || USE_MATRIX_DH || USE_CL_RSA || USE_CL_DH || USE_QUICK_ASSIST_RSA || USE_QUICK_ASSIST_ECC */
 
 /******************************************************************************/
 

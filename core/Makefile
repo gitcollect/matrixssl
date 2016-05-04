@@ -12,8 +12,6 @@ SRC:=\
 	corelib.c \
 	$(OSDEP)/osdep.c
 
-
-
 ASM:=memset_s.s
 
 # Generated files

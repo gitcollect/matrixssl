@@ -476,9 +476,9 @@ void osdepBreak(void)
 int32 psGetFileBuf(psPool_t *pool, const char *fileName, unsigned char **buf,
 				int32 *bufLen)
 {
-	FILE	*fp;
-	struct	stat	fstat;
-	size_t	tmp = 0;
+	FILE			*fp;
+	struct stat		f_stat;
+	size_t			tmp = 0;
 
 	*bufLen = 0;
 	*buf = NULL;
@@ -486,19 +486,20 @@ int32 psGetFileBuf(psPool_t *pool, const char *fileName, unsigned char **buf,
 	if (fileName == NULL) {
 		return PS_ARG_FAIL;
 	}
-	if ((stat(fileName, &fstat) != 0) || (fp = fopen(fileName, "r")) == NULL) {
+	if ((fp = fopen(fileName, "r")) == NULL || fstat(fileno(fp), &f_stat) != 0) {
 		psTraceStrCore("Unable to open %s\n", (char*)fileName);
 		return PS_PLATFORM_FAIL;
 	}
 
-	*buf = psMalloc(pool, (size_t)(fstat.st_size + 1));
+	*buf = psMalloc(pool, (size_t)(f_stat.st_size + 1));
 	if (*buf == NULL) {
+		fclose(fp);
 		return PS_MEM_FAIL;
 	}
-	memset(*buf, 0x0, (size_t)fstat.st_size + 1);
+	memset(*buf, 0x0, (size_t)f_stat.st_size + 1);
 
 	while (((tmp = fread(*buf + *bufLen, sizeof(char), 512, fp)) > 0) &&
-			(*bufLen < fstat.st_size)) {
+			(*bufLen < f_stat.st_size)) {
 		*bufLen += (int32)tmp;
 	}
 	fclose(fp);

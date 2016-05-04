@@ -680,29 +680,31 @@ static int32 csShaVerifyMac(void *sslv, unsigned char type,
 	unsigned char	buf[MAX_HASH_SIZE];
 	ssl_t	*ssl = (ssl_t*)sslv;
 
-#ifdef USE_TLS
 	if (ssl->flags & SSL_FLAGS_TLS) {
+		switch (ssl->nativeDeMacSize) {
 #ifdef USE_SHA256
-		if (ssl->nativeDeMacSize == SHA256_HASH_SIZE ||
-				ssl->nativeDeMacSize == SHA384_HASH_SIZE) {
+		case SHA256_HASH_SIZE:
+		case SHA384_HASH_SIZE:
 			tlsHMACSha2(ssl, HMAC_VERIFY, type, data, len, buf,
 				ssl->nativeDeMacSize);
-		} else {
+			break;
 #endif
 #ifdef USE_SHA1
+		case SHA1_HASH_SIZE:
 			tlsHMACSha1(ssl, HMAC_VERIFY, type, data, len, buf);
+			break;
 #endif
-#ifdef USE_SHA256
+		default:
+			memzero_s(buf, ssl->nativeDeMacSize); /* Will fail below */
+			break;
 		}
-#endif
 	} else {
-#endif /* USE_TLS */
 #ifndef DISABLE_SSLV3
 		ssl3HMACSha1(ssl->sec.readMAC, ssl->sec.remSeq, type, data, len, buf);
+#else
+		memzero_s(buf, SHA1_HASH_SIZE); /* Will fail below */
 #endif /* DISABLE_SSLV3 */
-#ifdef USE_TLS
 	}
-#endif /* USE_TLS */
 	if (memcmpct(buf, mac, ssl->deMacSize) == 0) {
 		return PS_SUCCESS;
 	}

@@ -41,7 +41,6 @@
 #include "dtlsCommon.h"
 #include "../../crypto/cryptoApi.h"
 
-
 /* #define USE_CERT_VALIDATOR */
 
 #define DTLS_PORT 4433
@@ -980,9 +979,9 @@ static int32 handleResends(SOCKET sock)
 	ssl_t			*ssl;
 	psTime_t		now;
 	unsigned char	*sslBuf;
-	int16			i;
-	int32			sendLen, rc;
-	uint32			timeout, sslBufLen, clientCount;
+	int16_t			i;
+	int32_t			sendLen, sslBufLen, rc;
+	uint32_t			timeout, clientCount;
 
 	clientCount = 0; /* return code is number of active clients or < 0 on error */
 	psGetTime(&now, NULL);
@@ -1071,7 +1070,7 @@ static void setSocketOptions(SOCKET fd)
 
 static SOCKET newUdpSocket(char *ip, short port, int *err)
 {
-	struct sockaddr_in	addr;
+	struct sockaddr_in	addr = { 0 };
 	SOCKET				fd;
 
 	if ((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -1087,6 +1086,7 @@ static SOCKET newUdpSocket(char *ip, short port, int *err)
 	if (ip == NULL) {
 		addr.sin_addr.s_addr = INADDR_ANY;
 		if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+			close(fd);
 			_psTrace("Can't bind socket. Port in use or permission problem\n");
 			*err = SOCKET_ERRNO;
 			return INVALID_SOCKET;
@@ -1234,9 +1234,10 @@ static void clearClient(serverDtls_t *dtls)
 	/* Quick attempt to send a closure alert, don't worry about failure */
 	if (matrixSslEncodeClosureAlert(ssl) >= 0) {
 		if ((len = matrixDtlsGetOutdata(ssl, &buf)) > 0) {
-			sendto(dtls->fd, buf, len, 0, (struct sockaddr*)&dtls->addr,
-					sizeof(struct sockaddr_in));
-			matrixDtlsSentData(ssl, len);
+			if (sendto(dtls->fd, buf, len, 0, (struct sockaddr*)&dtls->addr,
+					sizeof(struct sockaddr_in)) >= 0) {
+				matrixDtlsSentData(ssl, len);
+			}
 		}
 	}
 	matrixSslDeleteSession(ssl);

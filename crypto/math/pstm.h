@@ -37,10 +37,7 @@
 
 #include "../cryptoApi.h"
 
-#if defined(USE_MATRIX_RSA) || defined(USE_CL_RSA) \
- 	|| defined(USE_MATRIX_ECC) \
- 	|| defined(USE_MATRIX_DH) || defined(USE_CL_DH) \
- 	|| defined(USE_QUICK_ASSIST_RSA) || defined(USE_QUICK_ASSIST_ECC)
+#if defined(USE_MATRIX_RSA) || defined(USE_MATRIX_ECC) || defined(USE_MATRIX_DH) || defined(USE_CL_RSA) || defined(USE_CL_DH) || defined(USE_QUICK_ASSIST_RSA) || defined(USE_QUICK_ASSIST_ECC)
 
 #if defined(PS_PUBKEY_OPTIMIZE_FOR_FASTER_SPEED) && defined(PS_PUBKEY_OPTIMIZE_FOR_SMALLER_RAM)
 #error "May only enable either PS_PUBKEY_OPTIMIZE_FOR_FASTER_SPEED or PS_PUBKEY_OPTIMIZE_FOR_SMALLER_RAM"
@@ -155,7 +152,6 @@ typedef struct  {
 #define pstm_iszero(a) (((a)->used == 0) ? PS_TRUE : PS_FALSE)
 #define pstm_iseven(a) (((a)->used > 0 && (((a)->dp[0] & 1) == 0)) ? PS_TRUE : PS_FALSE)
 #define pstm_isodd(a)  (((a)->used > 0 && (((a)->dp[0] & 1) == 1)) ? PS_TRUE : PS_FALSE)
-#define pstm_abs(a, b)  { pstm_copy(a, b); (b)->sign  = 0; }
 
 extern void pstm_set(pstm_int *a, pstm_digit b);
 extern void pstm_zero(pstm_int *a);
@@ -172,6 +168,7 @@ extern void pstm_clamp(pstm_int *a);
 
 extern int32_t pstm_copy(const pstm_int *a, pstm_int *b);
 extern void pstm_exch(pstm_int *a, pstm_int *b);
+extern int32_t pstm_abs(const pstm_int *a, pstm_int *b);
 
 extern void pstm_clear(pstm_int *a);
 extern void pstm_clear_multi(
@@ -238,8 +235,7 @@ extern int32_t pstm_montgomery_reduce(psPool_t *pool, pstm_int *a, const pstm_in
 				pstm_digit mp, pstm_digit *paD, uint16_t paDlen);
 extern int32_t pstm_montgomery_calc_normalization(pstm_int *a, const pstm_int *b);
 
+#endif /* USE_MATRIX_RSA || USE_MATRIX_ECC || USE_MATRIX_DH || USE_CL_RSA || USE_CL_DH || USE_QUICK_ASSIST_RSA || USE_QUICK_ASSIST_ECC */
 
-#endif /* USE_MATRIX_RSA || USE_CL_RSA || USE_MATRIX_ECC || USE_MATRIX_DH \
-		  || USE_CL_DH || USE_QUICK_ASSIST_RSA || USE_QUICK_ASSIST_ECC */
 #endif /* _h_PSTMATH */
 

@@ -9,10 +9,11 @@
 MATRIXSSL_ROOT:=../..
 SERVER_SRC:=server.c http.c
 CLIENT_SRC:=client.c http.c
+SRC=$(SERVER_SRC) $(CLIENT_SRC)
 
-# Generated files
 SERVER_EXE:=server$(E)
 CLIENT_EXE:=client$(E)
+EXE=$(SERVER_EXE) $(CLIENT_EXE)
 
 #The Mac OS X Xcode project has a target name of 'server' or 'client'
 ifneq (,$(TARGET_NAME))
@@ -25,8 +26,6 @@ ifneq (,$(TARGET_NAME))
  endif
 endif
 
-SRC:=$(SERVER_SRC) $(CLIENT_SRC)
-
 include $(MATRIXSSL_ROOT)/common.mk
 
 # Linked files
@@ -35,13 +34,12 @@ STATIC:=\
 	$(MATRIXSSL_ROOT)/crypto/libcrypt_s.a \
 	$(MATRIXSSL_ROOT)/core/libcore_s.a
 
-
 CIPHER_OPTION=ID_RSA # The default cipher option
 CFLAGS+=-D$(CIPHER_OPTION)
 
 all: compile
 
-compile: $(OBJS) $(SERVER_EXE) $(CLIENT_EXE)
+compile: $(OBJS) $(EXE)
 
 # Additional Dependencies
 $(OBJS): $(MATRIXSSL_ROOT)/common.mk Makefile $(wildcard *.h)
@@ -53,5 +51,5 @@ $(CLIENT_EXE): $(CLIENT_SRC:.c=.o) $(STATIC)
 	$(CC) -o $@ $^ $(LDFLAGS) $(CFLAGS)
 
 clean:
-	rm -f $(SERVER_EXE) $(CLIENT_EXE) $(OBJS) TLS_*.tmp SSL_*.tmp
+	rm -f $(EXE) $(OBJS) TLS_*.tmp SSL_*.tmp
 

@@ -8,23 +8,23 @@
 #
 
 MATRIXSSL_ROOT:=../..
+
 VECTOR_SRC:=algorithmTest.c
 SPEED_SRC:=throughputTest.c
-SRC:=$(VECTOR_SRC) $(SPEED_SRC) 
+SRC:=$(VECTOR_SRC) $(SPEED_SRC)
+
+VECTOR_EXE:=algorithmTest$(E)
+SPEED_EXE:=throughputTest$(E)
+EXE:=$(VECTOR_EXE) $(SPEED_EXE)
 
 include $(MATRIXSSL_ROOT)/common.mk
 
-# Generated files
-VECTOR_EXE:=algorithmTest$(E)
-SPEED_EXE:=throughputTest$(E)
-
 # Linked files
 STATICS:=../libcrypt_s.a $(MATRIXSSL_ROOT)/core/libcore_s.a
-#STATICS+=$(MATRIXSSL_ROOT)/matrixssl/libssl_s.a
 
 all: compile
 
-compile: $(OBJS) $(SPEED_EXE) $(VECTOR_EXE)
+compile: $(OBJS) $(EXE)
 	$(MAKE) --directory=rsaperf
 	$(MAKE) --directory=eccperf
 	$(MAKE) --directory=dhperf
@@ -38,17 +38,8 @@ $(SPEED_EXE): $(SPEED_SRC:.c=.o) $(STATICS)
 $(VECTOR_EXE): $(VECTOR_SRC:.c=.o) $(STATICS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-
-ifneq (,$(findstring -octeon,$(CCARCH)))
- SIM:=oct-sim
- SIMFLAGS:=-quiet -numcores=1 -noperf
-endif
-
-test:
-	$(SIM) ./$(VECTOR_EXE) $(SIMFLAGS)
-
 clean:
-	rm -f $(VECTOR_EXE) $(SPEED_EXE) $(OBJS)
+	rm -f $(EXE) $(OBJS)
 	$(MAKE) clean --directory=rsaperf
 	$(MAKE) clean --directory=eccperf
 	$(MAKE) clean --directory=dhperf

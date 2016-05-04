@@ -44,15 +44,13 @@
 */
 int32_t getAsnLength(const unsigned char **pp, uint16_t size, uint16_t *len)
 {
-	uint32_t	len32;
+	uint32_t	len32 = 0;
 	int32_t		rc;
 
-	len32 = *len;
 	if ((rc = getAsnLength32(pp, size, &len32, 0)) < 0) {
 		return rc;
 	}
-	/* @note len32 is < size here, so it is <= 0xFFFF */
-	*len = (uint16_t)len32;
+	*len = (uint16_t)(len32 & 0xFFFF);
 	return PS_SUCCESS;
 }
 
@@ -172,15 +170,13 @@ int32_t getAsnSequence32(const unsigned char **pp, uint32_t size,
 
 int32_t getAsnSequence(const unsigned char **pp, uint16_t size, uint16_t *len)
 {
-	uint32_t	len32;
+	uint32_t	len32 = 0;
 	int32_t		rc;
 
-	len32 = *len;
 	if ((rc = getAsnSequence32(pp, size, &len32, 0)) < 0) {
 		return rc;
 	}
-	/* @note len32 is < size here, so it is <= 0xFFFF */
-	*len = (uint16_t)len32;
+	*len = (uint16_t)(len32 & 0xFFFF);
 	return PS_SUCCESS;
 }
 
@@ -211,15 +207,13 @@ int32_t getAsnSet32(const unsigned char **pp, uint32_t size, uint32_t *len,
 
 int32_t getAsnSet(const unsigned char **pp, uint16_t size, uint16_t *len)
 {
-	uint32_t	len32;
+	uint32_t	len32 = 0;
 	int32_t		rc;
 
-	len32 = *len;
 	if ((rc = getAsnSet32(pp, size, &len32, 0)) < 0) {
 		return rc;
 	}
-	/* @note len32 is < size here, so it is <= 0xFFFF */
-	*len = (uint16_t)len32;
+	*len = (uint16_t)(len32 & 0xFFFF);
 	return PS_SUCCESS;
 }
 /******************************************************************************/
@@ -330,7 +324,6 @@ int32_t getAsnInteger(const unsigned char **pp, uint32_t len, int32_t *val)
 	return PS_SUCCESS;
 }
 
-
 /******************************************************************************/
 /*
 	Implementation specific OID parser
@@ -417,8 +410,5 @@ int32_t getAsnOID(const unsigned char **pp, uint32_t len, int32_t *oi,
 	return PS_SUCCESS;
 }
 
-
-#ifdef USE_RSA
-#endif /* USE_RSA */
 /******************************************************************************/
 

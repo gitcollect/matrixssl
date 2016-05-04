@@ -210,8 +210,6 @@ PSPUBLIC void psAesClearGCM(psAesGcm_t *ctx);
 
 #endif /* USE_AES_GCM */
 
-
-
 #endif /* USE_AES */
 
 #ifdef USE_CHACHA20_POLY1305
@@ -443,8 +441,6 @@ PSPUBLIC void psHmacSha384Final(psHmacSha384_t *ctx,
 				unsigned char hash[SHA384_HASHLEN]);
 #endif
 
-
-
 /******************************************************************************/
 /*
 	Private Key Parsing
@@ -529,7 +525,6 @@ PSPUBLIC int32_t psRsaDecryptPub(psPool_t *pool, psRsaKey_t *key,
 				unsigned char *in, uint16_t inlen,
 				unsigned char *out, uint16_t outlen,
 				void *data);
-
 
 PSPUBLIC int32_t psRsaCrypt(psPool_t *pool, psRsaKey_t *key,
 				const unsigned char *in, uint16_t inlen,
@@ -677,7 +672,6 @@ PSPUBLIC int32 psX509ParseCrl(psPool_t *pool, psX509Cert_t *CA, int append,
 PSPUBLIC int32_t psInitPrng(psRandom_t *ctx, void *userPtr);
 PSPUBLIC int32_t psGetPrng(psRandom_t *ctx, unsigned char *bytes, uint16_t size,
 						void *userPtr);
-
 
 /******************************************************************************/
 /*

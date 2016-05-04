@@ -855,7 +855,6 @@ int32_t psRsaDecryptPub(psPool_t *pool, psRsaKey_t *key,
 	return PS_SUCCESS;
 }
 
-
 #endif /* USE_MATRIX_RSA */
 
 /******************************************************************************/

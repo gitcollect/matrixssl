@@ -35,7 +35,6 @@
 #ifndef _h_MATRIXSSLCONFIG
 #define _h_MATRIXSSLCONFIG
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -323,8 +322,6 @@ extern "C" {
 
 //#define DTLS_SEND_RECORDS_INDIVIDUALLY /* Max one record per datagram */
 #endif
-
-
 
 #ifdef __cplusplus
 }

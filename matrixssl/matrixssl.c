@@ -44,7 +44,6 @@ static int32 verifyReadKeys(psPool_t *pool, sslKeys_t *keys, void *poolUserPtr);
 #endif /* USE_SERVER_SIDE_SSL || USE_CLIENT_AUTH */
 #endif /* USE_RSA || USE_ECC */
 
-
 #ifdef USE_SERVER_SIDE_SSL
 
 #ifndef SSL_SESSION_TICKET_LIST_LEN
@@ -79,7 +78,6 @@ static int32 matrixSslLoadKeyMaterialMem(sslKeys_t *keys,
 				int32 privLen, const unsigned char *CAbuf, int32 CAlen,
 				int32 privKeyType);
 #endif /* USE_RSA || USE_ECC */
-
 
 /******************************************************************************/
 /*
@@ -117,7 +115,6 @@ int32 matrixSslOpenWithConfig(const char *config)
 	}
 
 
-
 #ifdef USE_SERVER_SIDE_SSL
 	memset(sessionTable, 0x0,
 		sizeof(sslSessionEntry_t) * SSL_SESSION_TABLE_SIZE);
@@ -140,7 +137,6 @@ int32 matrixSslOpenWithConfig(const char *config)
 
 	return PS_SUCCESS;
 }
-
 
 /*
 	matrixSslClose
@@ -184,7 +180,6 @@ int32_t matrixSslNewKeys(sslKeys_t **keys, void *memAllocUserPtr)
 	psPool_t	*pool = NULL;
 	sslKeys_t	*lkeys;
 	int32_t		rc;
-
 
 	lkeys = psMalloc(pool, sizeof(sslKeys_t));
 	if (lkeys == NULL) {
@@ -1075,7 +1070,6 @@ int32 matrixSslNewSession(ssl_t **ssl, const sslKeys_t *keys,
 		return PS_ARG_FAIL;
 	}
 
-
 	lssl = psMalloc(pool, sizeof(ssl_t));
 	if (lssl == NULL) {
 		psTraceInfo("Out of memory for ssl_t in matrixSslNewSession\n");
@@ -1102,7 +1096,6 @@ int32 matrixSslNewSession(ssl_t **ssl, const sslKeys_t *keys,
 		lssl->ecInfo.ecFlags = compiledInEcFlags();
 	}
 #endif
-
 
 /*
 	Data buffers
@@ -1139,7 +1132,11 @@ int32 matrixSslNewSession(ssl_t **ssl, const sslKeys_t *keys,
 
 	lssl->sPool = pool;
 	lssl->keys = (sslKeys_t*)keys;
-	lssl->cipher = sslGetCipherSpec(lssl, SSL_NULL_WITH_NULL_NULL);
+	if ((lssl->cipher = sslGetCipherSpec(lssl, SSL_NULL_WITH_NULL_NULL)) == NULL) {
+		psFree(lssl->outbuf, lssl->bufferPool);
+		psFree(lssl, pool);
+		return PS_MEM_FAIL;
+	}
 	sslActivateReadCipher(lssl);
 	sslActivateWriteCipher(lssl);
 
@@ -1165,7 +1162,6 @@ int32 matrixSslNewSession(ssl_t **ssl, const sslKeys_t *keys,
 		dtlsInitFrag(lssl);
 	}
 #endif /* USE_DTLS */
-
 
 	if (flags & SSL_FLAGS_SERVER) {
 		lssl->flags |= SSL_FLAGS_SERVER;
@@ -1416,7 +1412,6 @@ int32 matrixSslNewSession(ssl_t **ssl, const sslKeys_t *keys,
 	return PS_SUCCESS;
 }
 
-
 /******************************************************************************/
 /*
 	Delete an SSL session.  Some information on the session may stay around
@@ -1431,7 +1426,6 @@ void matrixSslDeleteSession(ssl_t *ssl)
 		return;
 	}
 
-
 	ssl->flags |= SSL_FLAGS_CLOSED;
 
 	/* Synchronize all digests, in case some of them have been updated, but
@@ -1441,7 +1435,6 @@ void matrixSslDeleteSession(ssl_t *ssl)
 #else /* !USE_TLS_1_2 */
 	psSha1Sync(NULL, 1);
 #endif /* USE_TLS_1_2 */
-
 
 /*
 	If we have a sessionId, for servers we need to clear the inUse flag in
@@ -1537,8 +1530,6 @@ void matrixSslDeleteSession(ssl_t *ssl)
 #endif
 #endif /* USE_DTLS */
 
-
-
 /*
 	Free the data buffers, clear any remaining user data
 */
@@ -1546,7 +1537,6 @@ void matrixSslDeleteSession(ssl_t *ssl)
 	memset(ssl->outbuf, 0x0, ssl->outsize);
 	psFree(ssl->outbuf, ssl->bufferPool);
 	psFree(ssl->inbuf, ssl->bufferPool);
-
 
 	freePkaAfter(ssl);
 	clearFlightList(ssl);
@@ -1563,7 +1553,6 @@ void matrixSslDeleteSession(ssl_t *ssl)
 	memset(ssl, 0x0, sizeof(ssl_t));
 	psFree(ssl, pool);
 }
-
 
 /******************************************************************************/
 /*
@@ -2315,7 +2304,7 @@ int32 matrixSessionTicketLen(void)
 */
 int32 matrixCreateSessionTicket(ssl_t *ssl, unsigned char *out, int32 *outLen)
 {
-	int32					len, ticketLen, pad;
+	int32					len, ticketLen, pad, rc;
 	uint32					timeSecs;
 	psTime_t				t;
 	psAesCbc_t				ctx;
@@ -2351,9 +2340,7 @@ int32 matrixCreateSessionTicket(ssl_t *ssl, unsigned char *out, int32 *outLen)
 		psTraceInfo("WARNING: matrixCryptoGetPrngData failed\n");
 	}
 
-#ifdef USE_MULTITHREADING
 	psLockMutex(&g_sessTicketLock);
-#endif
 	/* Ticket itself */
 	keys = ssl->keys->sessTickets;
 	/* name */
@@ -2383,26 +2370,33 @@ int32 matrixCreateSessionTicket(ssl_t *ssl, unsigned char *out, int32 *outLen)
 	pad = psPadLenPwr2(len, AES_BLOCKLEN);
 	c += sslWritePad(c, (unsigned char)pad); len += pad; 
 	/* out + 6 + 16 (name) is pointing at IV */
-	psAesInitCBC(&ctx, out + 6 + 16, keys->symkey, keys->symkeyLen, PS_AES_ENCRYPT);
+	if ((rc = psAesInitCBC(&ctx, out + 6 + 16, keys->symkey, keys->symkeyLen, PS_AES_ENCRYPT)) < 0) {
+		goto ERR_LOCKED;
+	}
 	psAesEncryptCBC(&ctx, enc, enc, len);
 	psAesClearCBC(&ctx);
 
 	/* HMAC starting from the Name */
 #ifdef USE_HMAC_SHA256
-	psHmacSha256Init(&dgst, keys->hashkey, keys->hashkeyLen);
+	if ((rc = psHmacSha256Init(&dgst, keys->hashkey, keys->hashkeyLen)) < 0) {
+		goto ERR_LOCKED;
+	}
 	psHmacSha256Update(&dgst, out + 6, len + 16 + 16);
 	psHmacSha256Final(&dgst, c);
 	*outLen = len + SHA256_HASHLEN + 16 + 16 + 6;
 #else
-	psHmacSha1Init(&dgst, keys->hashkey, keys->hashkeyLen);
+	if ((rc = psHmacSha1Init(&dgst, keys->hashkey, keys->hashkeyLen)) < 0) {
+		goto ERR_LOCKED;
+	}
 	psHmacSha1Update(&dgst, out + 6, len + 16 + 16);
 	psHmacSha1Final(&dgst, c);
 	*outLen = len + SHA1_HASHLEN + 16 + 16 + 6;
 #endif
-#ifdef USE_MULTITHREADING
+	rc = PS_SUCCESS;
+ERR_LOCKED:
+	memzero_s(randno, sizeof(randno));
 	psUnlockMutex(&g_sessTicketLock);
-#endif
-	return PS_SUCCESS;
+	return rc;
 }
 
 /******************************************************************************/
@@ -2419,7 +2413,6 @@ static int32 getTicketKeys(ssl_t *ssl, unsigned char *c,
 
 	/* First 16 bytes are the key name */
 	memcpy(name, c, 16);
-
 	*keys = NULL;
 	/* check our cached list beginning with our own encryption key */
 	lkey = ssl->keys->sessTickets;
@@ -2439,36 +2432,31 @@ static int32 getTicketKeys(ssl_t *ssl, unsigned char *c,
 	}
 	/* didn't find it.  Ask user */
 	if (ssl->keys->ticket_cb) {
-#ifdef USE_MULTITHREADING
 		/* Unlock. Cback will likely call matrixSslLoadSessionTicketKeys */
 		psUnlockMutex(&g_sessTicketLock);
-#endif
 		if (ssl->keys->ticket_cb((struct sslKeys_t*)ssl->keys, name,
 				cachedTicket) < 0) {
-			lkey->inUse = 0; /* inUse could be set in the odd case where we
+			if (lkey) {
+				/* inUse could be set in the odd case where we
 				found the cached key but the user didn't want to use it. */
+				lkey->inUse = 0;
+			}
 			return PS_FAILURE; /* user couldn't find it either */
 		} else {
 			/* found it */
-#ifdef USE_MULTITHREADING
 			psLockMutex(&g_sessTicketLock);
-#endif
 			if (cachedTicket == 0) {
 				/* it's been found and added at end of list.  confirm this */
 				lkey = ssl->keys->sessTickets;
 				if (lkey == NULL) {
-#ifdef USE_MULTITHREADING
 					psUnlockMutex(&g_sessTicketLock);
-#endif
 					return PS_FAILURE; /* user claims they added, but empty */
 				}
 				while (lkey->next) {
 					lkey = lkey->next;
 				}
 				if (memcmp(lkey->name, c, 16) != 0) {
-#ifdef USE_MULTITHREADING
 					psUnlockMutex(&g_sessTicketLock);
-#endif
 					return PS_FAILURE; /* user claims to have added, but... */
 				}
 				lkey->inUse = 1;
@@ -3026,7 +3014,6 @@ int32 matrixUserCertValidator(ssl_t *ssl, int32 alert,
 	return certValidator(ssl, subjectCert, status);
 }
 #endif /* !USE_ONLY_PSK_CIPHER_SUITE */
-
 
 /******************************************************************************/
 #ifdef USE_MATRIXSSL_STATS

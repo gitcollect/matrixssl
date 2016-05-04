@@ -56,7 +56,6 @@ int32 psCoreOpen(const char *config)
 		return -1;
 	}
 
-
 	if (osdepTimeOpen() < 0) {
 		psTraceCore("osdepTimeOpen failed\n");
 		return PS_FAILURE;
@@ -75,7 +74,6 @@ int32 psCoreOpen(const char *config)
 		return PS_FAILURE;
 	}
 #endif /* USE_MULTITHREADING */
-
 
 	return PS_SUCCESS;
 }

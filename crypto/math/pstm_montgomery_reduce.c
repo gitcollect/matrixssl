@@ -261,7 +261,6 @@ asm(                               \
 	:"r0","%cc");
 #endif /* __thumb2__ */
 
-
 /******************************************************************************/
 #elif defined(PSTM_MIPS)
 /* MIPS32 */
@@ -299,7 +298,6 @@ asm(                                  \
 	:"=r"(cy),"=m"(_c[0])\
 	:"r"(cy),"r"(_c[0])\
 	:"$10");
-
 
 /******************************************************************************/
 #else
@@ -414,7 +412,7 @@ int32_t pstm_montgomery_reduce(psPool_t *pool, pstm_int *a, const pstm_int *m,
 			x = PS_MEM_FAIL;
 		}
 	}
-	if (paDlen < cSize) {
+	if (c && c != paD) {
 		psFree(c, pool);
 	}
 	return x;

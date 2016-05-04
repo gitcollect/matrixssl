@@ -42,21 +42,17 @@ SRC:=\
 	pubkey/ecc.c \
 	pubkey/pubkey.c \
 	pubkey/rsa.c
-#OPENSSL
-ifdef PS_OPENSSL
+ifdef USE_OPENSSL_CRYPTO
 SRC+=\
 	digest/digest_openssl.c \
 	symmetric/symmetric_openssl.c \
 	pubkey/rsa_openssl.c
 endif
-#OPENSSL
-#LIBSODIUM
-ifdef PS_LIBSODIUM
+ifdef USE_LIBSODIUM_CRYPTO
 SRC+=\
 	symmetric/symmetric_libsodium.c \
 	digest/digest_libsodium.c
 endif
-#LIBSODIUM
 
 # Generated files
 STATIC:=libcrypt_s.a
@@ -80,3 +76,4 @@ clean:
 # Allows to check configuration options.
 parse-config:
 	echo '#include "cryptoConfig.h"' | $(CC) $(CFLAGS) -dM -E -x c -
+

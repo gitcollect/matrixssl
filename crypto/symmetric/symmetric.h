@@ -59,7 +59,6 @@
 #define MAX_KEYLEN		AES256_KEYLEN
 #define AES_MAXKEYLEN	AES256_KEYLEN
 
-
 /******************************************************************************/
 /* Layer includes */
 

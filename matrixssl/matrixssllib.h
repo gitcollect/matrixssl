@@ -90,7 +90,6 @@ extern "C" {
 */
 //#define USE_ZLIB_COMPRESSION /**< @security OFF NIST_SHOULD_NOT */
 
-
 /******************************************************************************/
 /**
 	Rehandshaking support.
@@ -203,7 +202,6 @@ extern "C" {
 #define DISABLE_SSLV3	/**< DO NOT DISABLE, undef below if required
 						@security NIST_SHALL_NOT */
 
-
 #if defined USE_TLS_1_2_AND_ABOVE
  #define DISABLE_TLS_1_1
  #define DISABLE_TLS_1_0
@@ -214,7 +212,6 @@ extern "C" {
 #else
  #error Must define USE_TLS_1_x_AND_ABOVE
 #endif
-
 
 #ifdef USE_DTLS
 /******************************************************************************/
@@ -230,7 +227,6 @@ extern "C" {
 #ifdef USE_ZLIB_COMPRESSION
  #include "zlib.h"
 #endif
-
 
 #if defined(USE_AES_GCM) || defined(USE_AES_CCM) || defined(USE_CHACHA20_POLY1305)
  #define USE_AEAD_CIPHER
@@ -293,7 +289,6 @@ extern "C" {
 #define     DTLS_MUST_FRAG      -60 /* Message must be fragmented */
 #define		DTLS_RETRANSMIT		-61 /* Received a duplicate hs msg from peer */
 #endif /* USE_DTLS */
-
 
 /*
 	Magic numbers for handshake header lengths
@@ -658,10 +653,8 @@ static __inline uint16_t HASH_SIG_MASK(uint8_t hash, uint8_t sig)
 #define EXT_SESSION_TICKET					35
 #define EXT_RENEGOTIATION_INFO				0xFF01
 
-
 /* How large the ALPN extension arrary is.  Number of protos client can talk */
 #define MAX_PROTO_EXT					8
-
 
 /*
 	Maximum key block size for any defined cipher
@@ -936,7 +929,6 @@ typedef struct {
 	psCipherContext_t	encryptCtx;
 	psCipherContext_t	decryptCtx;
 
-
 #ifndef USE_ONLY_TLS_1_2
 	psMd5Sha1_t			msgHashMd5Sha1;
 #endif
@@ -954,8 +946,6 @@ typedef struct {
 	psSha512_t			msgHashSha512;
 #endif
 #endif /* USE_TLS_1_2 */
-
-
 
 #if defined(USE_SERVER_SIDE_SSL) && defined(USE_CLIENT_AUTH)
 	unsigned char		sha1Snapshot[SHA1_HASH_SIZE];
@@ -1057,7 +1047,6 @@ typedef struct tlsHelloExt {
 	struct tlsHelloExt	*next;
 } tlsExtension_t;
 
-
 /* Hold the info needed to perform a public key operation for flight writes
 	until the very end.  This is an architectural change that was added to aid
 	the	integration of non-blocking hardware acceleration */
@@ -1141,7 +1130,6 @@ struct ssl {
 	int32			flagsBk;
 	uint32			bFlagsBk;
 #endif /* USE_CLIENT_SIDE_SSL */
-
 
 	unsigned char	*inbuf;
 	unsigned char	*outbuf;
@@ -1507,7 +1495,6 @@ extern int32 dtlsEncryptFragRecord(ssl_t *ssl, flightEncode_t *msg,
 				sslBuf_t *out, unsigned char **c);
 #endif /* USE_DTLS */
 
-
 /*
 	cipherSuite.c
 */
@@ -1592,7 +1579,6 @@ extern void sslSha512SnapshotHSHash(ssl_t *ssl, unsigned char *out);
 extern int32_t extMasterSecretSnapshotHSHash(ssl_t *ssl, unsigned char *out,
 				uint32 *outLen);
 
-
 /******************************************************************************/
 /*
 	prf.c
@@ -1670,9 +1656,6 @@ extern int32_t eccSuitesSupported(const ssl_t *ssl,
 		const uint16_t cipherSpecs[], uint8_t cipherSpecLen);
 #endif /* USE_ECC_CIPHER_SUITE */
 
-
-
-
 /******************************************************************************/
 /* Deprected defines for compatibility */
 #define CH_RECV_STAT			1
@@ -1693,7 +1676,6 @@ void matrixsslUpdateStat(ssl_t *ssl, int32_t type, int32_t value)
 {
 }
 #endif /* USE_MATRIXSSL_STATS */
-
 
 #ifdef __cplusplus
 }

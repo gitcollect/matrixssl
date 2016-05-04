@@ -36,7 +36,6 @@
 
 #ifdef USE_CLIENT_SIDE_SSL
 
-
 static int packet_loss_prob = 0; /* Reciprocal of packet loss probability
 									(i.e. P(packet loss) = 1/x).
 									Default value is 0 (no packet loss). */
@@ -220,7 +219,6 @@ static uint16_t g_cipher[16];
 static int32 certCb(ssl_t *ssl, psX509Cert_t *cert, int32 alert);
 static void closeConn(sslDtls_t *dtls, SOCKET fd);
 static int32 sendHelloWorld(sslDtls_t *dtlsCtx);
-
 
 /******************************************************************************/
 /*
@@ -555,7 +553,9 @@ static int32 sendHelloWorld(sslDtls_t *dtlsCtx)
 	avail = min(avail, len);
 	strncpy((char*)buf, (char*)helloWorld, avail);
 
-	matrixSslEncodeWritebuf(dtlsCtx->ssl, avail);
+	if ((ret = matrixSslEncodeWritebuf(dtlsCtx->ssl, avail)) < 0) {
+		return ret;
+	}
 /*
 	Get the encoded buffer and write it out
 */
@@ -563,8 +563,8 @@ static int32 sendHelloWorld(sslDtls_t *dtlsCtx)
 		ret = (int32)sendto(dtlsCtx->fd, buf, len, 0,
 			(struct sockaddr*)&dtlsCtx->addr, sizeof(struct sockaddr_in));
 		if (ret == -1) {
-				perror("sendto");
-				exit(1);
+			perror("sendto");
+			exit(1);
 		}
 		matrixDtlsSentData(dtlsCtx->ssl, len);
 	}
@@ -855,6 +855,7 @@ int32 main(int32 argc, char **argv)
 	if (CAstreamLen > 0) {
 		CAstream = psMalloc(NULL, CAstreamLen);
 	} else {
+		/* coverity[dead_error_line] */
 		CAstream = NULL;
 	}
 

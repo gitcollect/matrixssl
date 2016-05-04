@@ -224,7 +224,6 @@ PSPUBLIC int32 matrixSslDeleteSessionTicketKey(sslKeys_t *keys,
 #endif /* USE_SERVER_SIDE_SSL */
 
 
-
 #ifdef USE_DTLS
 /******************************************************************************/
 /*

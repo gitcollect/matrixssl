@@ -1077,7 +1077,6 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 		return rc;
 	}
 
-
 #ifdef USE_DTLS
 	if (ssl->flags & SSL_FLAGS_DTLS) {
 		/*	This function takes care of writing out entire flights so we know
@@ -1486,7 +1485,6 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			messageSize += 6 + 1 + ssl->alpnLen; /* 6 type/len + 1 len + data */
 		}
 #endif
-
 
 #ifdef ENABLE_SECURE_REHANDSHAKES
 /*
@@ -2127,7 +2125,6 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 		/* Going recursive */
 		return sslEncodeResponse(ssl, out, &alertReqLen);
 	}
-
 
 #ifdef USE_SERVER_SIDE_SSL
 	/* Post-flight write PKA operation.  Support is for the signature
@@ -3190,7 +3187,6 @@ static int32 writeServerHello(ssl_t *ssl, sslBuf_t *out)
 		extLen += 4;
 	}
 
-
 #ifdef USE_STATELESS_SESSION_TICKETS
 	if (ssl->sid &&	ssl->sid->sessionTicketState == SESS_TICKET_STATE_RECVD_EXT) {
 		if (extLen == 0) {
@@ -3355,7 +3351,6 @@ static int32 writeServerHello(ssl_t *ssl, sslBuf_t *out)
 			*c = 0; c++;
 			*c = 0; c++;
 		}
-
 
 #ifdef USE_STATELESS_SESSION_TICKETS
 		if (ssl->sid &&
@@ -3909,7 +3904,6 @@ static int32 writeServerKeyExchange(ssl_t *ssl, sslBuf_t *out, uint32 pLen,
 		*c = (ssl->keys->privKey.keysize & 0xFF00) >> 8; c++;
 		*c = ssl->keys->privKey.keysize & 0xFF; c++;
 
-
 #ifdef USE_DTLS
 		if ((ssl->flags & SSL_FLAGS_DTLS) && (ssl->retransmit == 1)) {
 			/* It is not optimal to have run through the above digest updates
@@ -4132,7 +4126,8 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 	psX509Cert_t	*cert, *future;
 	unsigned char	*c, *end, *encryptStart;
 	uint8_t			padLen;
-	uint16_t		messageSize, certLen;
+	uint16_t		messageSize;
+	uint32_t		certLen;
 	int32_t			rc;
 	int32			midWrite, midSizeWrite, countDown, firstOne = 1;
 
@@ -4286,6 +4281,9 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 						*c = (certLen & 0xFF00) >> 8; c++; countDown--;
 						midSizeWrite = 1;
 						if (countDown != 0) {
+#ifdef TODO
+/* Cannot reach here!, countdown is always zero */
+#endif
 							*c = (certLen & 0xFF); c++; countDown--;
 							midSizeWrite = 0;
 						}
@@ -4653,6 +4651,19 @@ static int32 writeAlert(ssl_t *ssl, unsigned char level,
 	uint16_t		messageSize;
 	int32_t		rc;
 
+#ifdef USE_SSL_HANDSHAKE_MSG_TRACE
+	if (ssl->flags & SSL_FLAGS_SERVER) {
+		psTraceHs("<<< Server");
+	} else {
+		psTraceHs("<<< Client");
+	}
+	if (description == SSL_ALERT_CLOSE_NOTIFY) {
+		psTraceHs(" creating ALERT (CLOSE_NOTIFY) message\n");
+	} else {
+		psTraceHs(" creating ALERT message\n");
+	}
+#endif
+	psTraceIntInfo("Creating alert %d\n", description);
 	c = out->end;
 	end = out->buf + out->size;
 	messageSize = 2 + ssl->recordHeadLen;
@@ -4682,7 +4693,6 @@ static int32 writeAlert(ssl_t *ssl, unsigned char level,
 #endif
 	return MATRIXSSL_SUCCESS;
 }
-
 
 #ifdef USE_CLIENT_SIDE_SSL
 #ifdef USE_TRUSTED_CA_INDICATION
@@ -4772,7 +4782,6 @@ int32_t matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out,
 	}
 
 	sslInitHSHash(ssl);
-
 
 	cookieLen = 0;
 #ifdef USE_DTLS
@@ -4911,7 +4920,6 @@ int32_t matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out,
 		extLen += trustedCAindicationExtLen(ssl->keys->CAcerts) + 4;
 	}
 #endif
-
 
 #ifdef ENABLE_SECURE_REHANDSHAKES
 	/* Subsequent CLIENT_HELLOs must use a populated RenegotiationInfo extension */
@@ -5309,7 +5317,7 @@ int32_t matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out,
 			*c = EXT_ELLIPTIC_CURVE & 0xFF; c++;
 			*c = ((curveListLen + 2) & 0xFF00) >> 8; c++;
 			*c = (curveListLen + 2) & 0xFF; c++;
-			*c = (curveListLen & 0xFF00) >> 8; c++;
+			*c = 0; c++;	/* High byte always zero */
 			*c = curveListLen & 0xFF; c++;
 			memcpy(c, eccCurveList, curveListLen);
 			c += curveListLen;
@@ -5486,7 +5494,6 @@ static int32 writeClientKeyExchange(ssl_t *ssl, sslBuf_t *out)
 		return PS_PLATFORM_FAIL;
 	}
 
-
 #ifdef USE_PSK_CIPHER_SUITE
 	if (ssl->flags & SSL_FLAGS_PSK_CIPHER) {
 		/* Get the key id to send in the clientKeyExchange message.  */
@@ -5642,7 +5649,6 @@ static int32 writeClientKeyExchange(ssl_t *ssl, sslBuf_t *out)
 			*c = (keyLen & 0xFF); c++;
 		}
 	}
-
 
 #ifdef USE_DTLS
 	if ((ssl->flags & SSL_FLAGS_DTLS) && (ssl->retransmit == 1)) {
@@ -5929,7 +5935,6 @@ static int32 nowDoCvPka(ssl_t *ssl, psBuf_t *out)
 			return PS_MEM_FAIL;
 		}
 
-
 #ifdef USE_TLS_1_2
 		/* Tweak if needed */
 		if (ssl->flags & SSL_FLAGS_TLS_1_2) {
@@ -6005,7 +6010,6 @@ static int32 nowDoCvPka(ssl_t *ssl, psBuf_t *out)
 		}
 #endif /* USE_DTLS */
 		clearPkaAfter(ssl);
-
 
 	} else {
 #endif /* USE_ECC */
@@ -6090,7 +6094,6 @@ static int32 nowDoCvPka(ssl_t *ssl, psBuf_t *out)
 #endif /* USE_TLS_1_2 */
 
 
-
 #else /* RSA is the 'default' so if that didn't get hit there is a problem */
 		psTraceInfo("There is no handler for writeCertificateVerify.  ERROR\n");
 		return MATRIXSSL_ERROR;
@@ -6121,7 +6124,6 @@ static int32 writeCertificateVerify(ssl_t *ssl, sslBuf_t *out)
 	psTraceHs("<<< Client creating CERTIFICATE_VERIFY  message\n");
 	c = out->end;
 	end = out->buf + out->size;
-
 
 	if ((pkaAfter = getPkaAfter(ssl)) == NULL) {
 		psTraceInfo("getPkaAfter error for certVerify\n");
@@ -6397,7 +6399,6 @@ static int32 writeCertificateVerify(ssl_t *ssl, sslBuf_t *out)
 #endif /* USE_CLIENT_AUTH */
 #endif /* !USE_ONLY_PSK_CIPHER_SUITE */
 
-
 #else /* USE_CLIENT_SIDE_SSL */
 /******************************************************************************/
 /*
@@ -6412,7 +6413,6 @@ int32_t matrixSslEncodeClientHello(ssl_t *ssl, sslBuf_t *out,
 	return PS_UNSUPPORTED_FAIL;
 }
 #endif /* USE_CLIENT_SIDE_SSL */
-
 
 #ifndef USE_ONLY_PSK_CIPHER_SUITE
 #if defined(USE_SERVER_SIDE_SSL) && defined(USE_CLIENT_AUTH)

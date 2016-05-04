@@ -1,6 +1,7 @@
 ##
-#	Common Makefile definitions.
-#	Copyright (c) 2013-2016 INSIDE Secure Corporation. All Rights Reserved.
+# Common Makefile definitions.
+# @version $Format:%h%d$
+# Copyright (c) 2013-2016 INSIDE Secure Corporation. All Rights Reserved.
 #
 #-------------------------------------------------------------------------------
 
@@ -94,12 +95,12 @@ else
 endif
 CFLAGS+=$(OPT)
 
-# Detect multicore and do parallel build. Uncomment if desired
-#ifneq (,$(findstring -linux,$(CCARCH)))
-# JOBS:=-j$(shell grep -ic processor /proc/cpuinfo)
-#else ifneq (,$(findstring apple,$(CCARCH)))
-# JOBS:=-j$(shell sysctl -n machdep.cpu.thread_count)
-#endif
+# Detect multicore and do parallel build. Uncomment if desired:
+#> ifneq (,$(findstring -linux,$(CCARCH)))
+#>  JOBS:=-j$(shell grep -ic processor /proc/cpuinfo)
+#> else ifneq (,$(findstring apple,$(CCARCH)))
+#>  JOBS:=-j$(shell sysctl -n machdep.cpu.thread_count)
+#> endif
 
 default: $(BUILD)
 
@@ -212,9 +213,8 @@ endif
 
 CFLAGS+=-I$(MATRIXSSL_ROOT)
 
-#OPENSSL
-#PS_OPENSSL:=1
-ifdef PS_OPENSSL
+#USE_OPENSSL_CRYPTO:=1
+ifdef USE_OPENSSL_CRYPTO
  OPENSSL_ROOT:=/opt/openssl-1.0.2d
  ifdef OPENSSL_ROOT
   # Statically link against a given openssl tree
@@ -234,12 +234,10 @@ ifdef PS_OPENSSL
  CFLAGS+=-DUSE_OPENSSL_CRYPTO
  STROPTS+=", USE_OPENSSL_CRYPTO"
 endif
-#OPENSSL
 
-#LIBSODIUM
-#PS_LIBSODIUM:=1
-ifdef PS_LIBSODIUM
- LIBSODIUM_ROOT:=/opt/libsodium-1.0.10/src/libsodium
+#USE_LIBSODIUM_CRYPTO:=1
+ifdef USE_LIBSODIUM_CRYPTO
+ LIBSODIUM_ROOT:=/opt/libsodium-1.0.8/src/libsodium
  ifdef LIBSODIUM_ROOT
   # Statically link against a given libsodium
   CFLAGS+=-I$(LIBSODIUM_ROOT)/include
@@ -250,7 +248,6 @@ ifdef PS_LIBSODIUM
  CFLAGS+=-DUSE_LIBSODIUM_CRYPTO
  STROPTS+=", USE_LIBSODIUM_CRYPTO"
 endif
-#LIBSODIUM
 
 # Linux Target
 ifneq (,$(findstring -linux,$(CCARCH)))

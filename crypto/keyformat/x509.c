@@ -245,7 +245,7 @@ static int32_t pemCertFileBufToX509(psPool_t *pool, const unsigned char *fileBuf
 
 	*x509certList = NULL;
 	prev = NULL;
-	if (fileBufLen < 0 || fileBuf == NULL) {
+	if (fileBuf == NULL) {
 		psTraceCrypto("Bad parameters to pemCertFileBufToX509\n");
 		return PS_ARG_FAIL;
 	}
@@ -2668,7 +2668,9 @@ MORE_IN_SET:
 			case ASN_PRINTABLESTRING:
 			case ASN_UTF8STRING:
 			case ASN_IA5STRING:
+				/* coverity[unterminated_case] */
 				checkHiddenNull = PS_TRUE;
+				/* fall through */
 			case ASN_T61STRING:
 			case ASN_BMPSTRING:
 			case ASN_BIT_STRING:
@@ -3079,7 +3081,6 @@ int32 psX509AuthenticateCert(psPool_t *pool, psX509Cert_t *subjectCert,
 			if ((rc = psRsaDecryptPub(pkiPool, &ic->publicKey.key.rsa,
 					tempSig, sc->signatureLen, sigOut, sigLen, rsaData)) < 0) {
 
-
 				psTraceCrypto("Unable to RSA decrypt certificate signature\n");
 				sc->authStatus = PS_CERT_AUTH_FAIL_SIG;
 				psFree(tempSig, pool);
@@ -3138,7 +3139,6 @@ int32 psX509AuthenticateCert(psPool_t *pool, psX509Cert_t *subjectCert,
 			}
 		}
 #endif /* USE_ECC */
-
 
 /*
 		Test what happen in the signature test?
@@ -3605,14 +3605,12 @@ int32 psX509ParseCrl(psPool_t *pool, psX509Cert_t *CA, int append,
 	}
 
 
-
 	if ((rc = pubRsaDecryptSignedElement(pkiPool, &CA->publicKey.key.rsa,
 			revStart, ilen, sigOut, sigLen, NULL)) < 0) {
 		x509FreeRevoked(&CA->revoked);
 		psTraceCrypto("Unable to RSA decrypt CRL signature\n");
 		return rc;
 	}
-
 
 	if (memcmp(sigHash, sigOut, sigLen) != 0) {
 		x509FreeRevoked(&CA->revoked);
@@ -4411,7 +4409,6 @@ int32_t validateOCSPResponse(psPool_t *pool, psX509Cert_t *trustedOCSP,
 	}
 #endif
 	
-
 	/* Was able to successfully confirm OCSP signature for our subject */
 	return PS_SUCCESS;
 }

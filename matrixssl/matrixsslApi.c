@@ -437,7 +437,6 @@ int32 matrixSslGetWritebuf(ssl_t *ssl, unsigned char **buf, uint32 requestedLen)
 	}
 	psAssert(ssl->outsize > 0 && ssl->outbuf != NULL);
 
-
 #ifdef USE_BEAST_WORKAROUND
 	/* This is a client-only feature */
 	if (!(ssl->flags & SSL_FLAGS_SERVER)) {
@@ -992,7 +991,6 @@ DECODE_MORE:
 			/* Don't need to change inlen */
 		}
 
-
 		rc = MATRIXSSL_REQUEST_RECV;	/* Expecting more data */
 		break;
 
@@ -1511,7 +1509,6 @@ int32 matrixSslIsSessionCompressionOn(ssl_t *ssl)
 	return PS_FALSE;
 }
 #endif
-
 
 #ifdef USE_CRL
 /*

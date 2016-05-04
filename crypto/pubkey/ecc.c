@@ -449,8 +449,6 @@ int32_t getEcPubKey(psPool_t *pool, const unsigned char **pp, uint16_t len,
 	return 0;
 }
 
-
-
 /**
 	Initialize an ECC key and generate a public/private keypair for the given
 	curve.
@@ -578,7 +576,6 @@ RETRY_RAND:
 			!= PS_SUCCESS) {
 		goto ERR_BASE;
 	}
-
 
 	/* make the public key */
 	if (pstm_init_size(pool, &key->pubkey.x, (key->k.used * 2) + 1) < 0) {
@@ -1009,7 +1006,7 @@ static uint8_t get_digit_count(const pstm_int *a)
 
 static pstm_digit get_digit(const pstm_int *a, uint8_t n)
 {
-	return (n >= a->used || n < 0) ? (pstm_digit)0 : a->dp[n];
+	return (n >= a->used) ? (pstm_digit)0 : a->dp[n];
 }
 
 /******************************************************************************/
@@ -1387,8 +1384,8 @@ int32_t psEccX963ImportKey(psPool_t *pool,
 	case ANSI_COMPRESSED1:
 	case ANSI_HYBRID0:
 	case ANSI_HYBRID1:
-		psTraceCrypto("ERROR: ECC compressed/hybrid formats unsupported\n");
 	default:
+		psTraceCrypto("ERROR: ECC compressed/hybrid formats unsupported\n");
 		err = PS_UNSUPPORTED_FAIL;
 		goto error;
 	}
@@ -2121,7 +2118,6 @@ done:
 	return err;
 }
 
-
 /******************************************************************************/
 /**
 	Allocate a new ECC point.
@@ -2138,32 +2134,33 @@ static psEccPoint_t *eccNewPoint(psPool_t *pool, short size)
 	p->pool = pool;
 	if (size == 0) {
 		if (pstm_init(pool, &p->x) != PSTM_OKAY) {
-			return NULL;
+			goto ERR;
 		}
 		if (pstm_init(pool, &p->y) != PSTM_OKAY) {
-			pstm_clear(&p->x);
-			return NULL;
+			goto ERR_X;
 		}
 		if (pstm_init(pool, &p->z) != PSTM_OKAY) {
-			pstm_clear(&p->x);
-			pstm_clear(&p->y);
-			return NULL;
+			goto ERR_Y;
 		}
 	} else {
 		if (pstm_init_size(pool, &p->x, size) != PSTM_OKAY) {
-			return NULL;
+			goto ERR;
 		}
 		if (pstm_init_size(pool, &p->y, size) != PSTM_OKAY) {
-			pstm_clear(&p->x);
-			return NULL;
+			goto ERR_X;
 		}
 		if (pstm_init_size(pool, &p->z, size) != PSTM_OKAY) {
-			pstm_clear(&p->x);
-			pstm_clear(&p->y);
-			return NULL;
+			goto ERR_Y;
 		}
 	}
 	return p;
+ERR_Y:
+	pstm_clear(&p->y);
+ERR_X:
+	pstm_clear(&p->x);
+ERR:
+	psFree(p, pool);
+	return NULL;
 }
 
 /**
@@ -2303,7 +2300,6 @@ int32_t psEccDsaVerify(psPool_t *pool, const psEccKey_t *key,
 		pstm_clear(&r);
 		return err;
 	}
-
 
 	/* allocate ints */
 	radlen = key->curve->size * 2;
@@ -2689,7 +2685,6 @@ LBL_P:
 	pstm_clear(&p);
 	return err;
 }
-
 
 #endif /* USE_MATRIX_ECC */
 

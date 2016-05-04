@@ -673,12 +673,10 @@ int sslTest(void)
 	testResult_t			*result = g_results;
 #endif /* ENABLE_PERF_TIMING */
 
-
 	if (matrixSslOpen() < 0) {
 		fprintf(stderr, "matrixSslOpen failed, exiting...\n");
 		return -1;
 	}
-
 
 	svrConn = psMalloc(MATRIX_NO_POOL, sizeof(sslConn_t));
 	clnConn = psMalloc(MATRIX_NO_POOL, sizeof(sslConn_t));

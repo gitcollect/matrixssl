@@ -403,7 +403,6 @@ int32_t psDhGenSharedSecret(psPool_t *pool,
 		return PS_ARG_FAIL;
 	}
 
-
 	/* compute y^x mod p */
 	if ((err = pstm_init(pool, &tmp)) != PS_SUCCESS) {
 		return err;

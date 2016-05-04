@@ -62,8 +62,6 @@
 
 #define USE_BURN_STACK /**< @security Zero sensitive data from the stack. */
 
-
-
 /******************************************************************************/
 /**
 	Public-Key Algorithm Support.
@@ -105,6 +103,7 @@
 */
 #define USE_AES_CBC
 #define USE_AES_GCM
+//#define USE_AES_GCM_GIV
 
 #ifdef USE_LIBSODIUM_CRYPTO
  #define USE_CHACHA20_POLY1305
@@ -155,7 +154,6 @@
 #define USE_MD5SHA1		/* Required for < TLS 1.2 Handshake */
 #define USE_HMAC_MD5	/* TODO currently needed for prf */
 
-
 /******************************************************************************/
 /**
 	X.509 Certificates/PKI
@@ -181,7 +179,6 @@
 //#define USE_PKCS12	/**< @pre USE_PKCS8 */
 //#define USE_PKCS1_OAEP	/* OAEP padding algorithm */
 //#define USE_PKCS1_PSS		/* PSS padding algorithm */
-
 
 #endif /* _h_PS_CRYPTOCONFIG */
 

@@ -68,7 +68,6 @@
 */
 #include "layer/layer.h"
 
-
 /* Configuration validation/sanity checks */
 #include "cryptoCheck.h"
 
@@ -551,8 +550,6 @@ x = (((uint64)((y)[0] & 255))<<56)|(((uint64)((y)[1] & 255))<<48)| \
 #define psPadLenPwr2(LEN, BLOCKSIZE) \
 	BLOCKSIZE <= 1 ? (unsigned char)0 : \
 	(unsigned char)(BLOCKSIZE - ((LEN) & (BLOCKSIZE - 1)))
-
-
 
 #endif /* _h_PS_CRYPTOLIB */
 

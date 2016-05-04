@@ -68,7 +68,6 @@ static const uint32_t K[64] = {
 #define Gamma0(x)			(S(x, 7) ^ S(x, 18) ^ R(x, 3))
 #define Gamma1(x)			(S(x, 17) ^ S(x, 19) ^ R(x, 10))
 
-
 /*
 	compress 512-bits
  */

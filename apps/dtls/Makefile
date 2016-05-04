@@ -7,10 +7,10 @@
 #
 
 MATRIXSSL_ROOT:=../..
+
 SERVER_SRC:=dtlsServer.c dtlsCommon.c
 CLIENT_SRC:=dtlsClient.c dtlsCommon.c
 
-# Generated files
 SERVER_EXE:=dtlsServer$(E)
 CLIENT_EXE:=dtlsClient$(E)
 
@@ -37,7 +37,6 @@ STATIC:=\
 
 CIPHER_OPTION=ID_RSA # The default cipher option
 CFLAGS+=-D$(CIPHER_OPTION)
-
 
 ifdef DTLS_PACKET_LOSS_TEST
 # Enable all packet-loss related tests

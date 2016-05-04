@@ -104,7 +104,6 @@ int32_t psInitPrng(psRandom_t *ctx, void *userPtr)
 
 	ctx->bytecount = 0;
 
-
 #if defined(USE_FORTUNA) || defined(USE_YARROW)
 	if ((rc = psGetEntropy(entropyBytes, RANDOM_ENTROPY_BYTES, userPtr)) < 0) {
 		return rc;
@@ -142,7 +141,6 @@ static int32_t readRandomData(psRandom_t *ctx, unsigned char *bytes, uint16_t si
 	entropy and reseed the key.
 */
 	ctx->bytecount += size;
-
 
 
 #ifdef USE_YARROW

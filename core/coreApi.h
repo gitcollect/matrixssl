@@ -142,7 +142,6 @@ PSPUBLIC void		psCoreClose(void);
 PSPUBLIC void		psBurnStack(uint32 len);
 PSPUBLIC int32		memcmpct(const void *s1, const void *s2, size_t len);
 
-
 /******************************************************************************/
 /*
 	Public interface to OS-dependant core functionality

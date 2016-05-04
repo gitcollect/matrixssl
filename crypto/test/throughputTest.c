@@ -49,7 +49,6 @@ static unsigned char key[32] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 			0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
 			0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
 
-
 enum {
 	AES_ENC_ALG = 1,
 	AES_DEC_ALG,
@@ -132,6 +131,7 @@ static void runWithHmac(psCipherContext_t *ctx, psHmac_t *hmac,
 #endif
 	default:
 		printf("Skipping HMAC Test\n");
+		psFree(dataChunk, NULL);
 		return;
 	}
 
@@ -147,6 +147,7 @@ static void runWithHmac(psCipherContext_t *ctx, psHmac_t *hmac,
 	printf("%d byte chunks in %d msecs total for rate of %d MB/sec\n",
 		chunk, diffm, round);
 #endif
+	psFree(dataChunk, NULL);
 }
 #endif /* USE_HMAC */
 
@@ -241,6 +242,7 @@ static void runTime(psCipherContext_t *ctx, psCipherGivContext_t *ctx_giv,
 		break;
 #endif
 	default:
+		psFree(dataChunk, NULL);
 		return;
 	}
 
@@ -620,6 +622,7 @@ void runDigestTime(psDigestContext_t *ctx, int32 chunk, int32 alg)
 		break;
 #endif
 	default:
+		psFree(dataChunk, NULL);
 		printf("Skipping Digest Tests\n");
 		return;
 	}
@@ -636,7 +639,7 @@ void runDigestTime(psDigestContext_t *ctx, int32 chunk, int32 alg)
 	printf("%d byte chunks in %d msecs total for rate of %d MB/sec\n",
 		chunk, diffm, round);
 #endif
-
+	psFree(dataChunk, NULL);
 }
 
 /******************************************************************************/

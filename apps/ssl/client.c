@@ -876,7 +876,6 @@ int32 main(int32 argc, char **argv)
 		return rc;
 	}
 
-
 	if (matrixSslNewKeys(&keys, NULL) < 0) {
 		_psTrace("MatrixSSL library key init failure.  Exiting\n");
 		return -1;
@@ -924,6 +923,7 @@ int32 main(int32 argc, char **argv)
 	if (CAstreamLen > 0) {
 		CAstream = psMalloc(NULL, CAstreamLen);
 	} else {
+		/* coverity[dead_error_line] */
 		CAstream = NULL;
 	}
 
@@ -993,6 +993,7 @@ int32 main(int32 argc, char **argv)
 		CAstream = psMalloc(NULL, CAstreamLen);
 		memset(CAstream, 0x0, CAstreamLen);
 	} else {
+		/* coverity[dead_error_line] */
 		CAstream = NULL;
 	}
 
@@ -1160,17 +1161,19 @@ int32 main(int32 argc, char **argv)
 static void closeConn(ssl_t *ssl, SOCKET fd)
 {
 	unsigned char	*buf;
-	int32			len;
+	int32			len, rc;
 
 	if (g_send_closure_alert) {
 #if 1
 	/* Set the socket to non-blocking to flush remaining data */
 #ifdef POSIX
-	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+	rc = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+	psAssert(rc >= 0);
 #endif
 #ifdef WIN32
 	len = 1;		/* 1 for non-block, 0 for block */
-	ioctlsocket(fd, FIONBIO, &len);
+	rc = ioctlsocket(fd, FIONBIO, &len);
+	psAssert(rc);
 #endif
 	/* Quick attempt to send a closure alert, don't worry about failure */
 	if (matrixSslEncodeClosureAlert(ssl) >= 0) {
@@ -1505,7 +1508,8 @@ static SOCKET lsocketConnect(char *ip, int32 port, int32 *err)
 		return INVALID_SOCKET;
 	}
 #ifdef POSIX
-	fcntl(fd, F_SETFD, FD_CLOEXEC);
+	rc = fcntl(fd, F_SETFD, FD_CLOEXEC);
+	psAssert(rc >= 0);
 #endif
 #if 0
 	{
@@ -1525,24 +1529,24 @@ static SOCKET lsocketConnect(char *ip, int32 port, int32 *err)
 	}
 #endif
 #ifdef POSIX
-	rc = 1;
+//	rc = 1;
 //	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&rc, sizeof(rc));
 //	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 #elif defined(WIN32)
-	rc = 1;     /* 1 for non-block, 0 for block */
+//	rc = 1;     /* 1 for non-block, 0 for block */
 //	ioctlsocket(fd, FIONBIO, &rc);
 #endif
 #ifdef __APPLE__  /* MAC OS X */
 	rc = 1;
 	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&rc, sizeof(rc));
 #endif
-
 	memset((char *) &addr, 0x0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((short)port);
 	addr.sin_addr.s_addr = inet_addr(ip);
 	rc = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
 	if (rc < 0) {
+		close(fd);
 		perror("connect()");
 		*err = SOCKET_ERRNO;
 	} else {

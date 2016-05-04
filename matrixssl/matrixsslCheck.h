@@ -66,8 +66,6 @@ extern "C" {
 #endif
 #endif
 
-
-
 /******************************************************************************/
 /*
 	SHA1 and MD5 are essential elements for SSL key derivation during protocol

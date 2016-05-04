@@ -18,7 +18,6 @@ TEST_EXE:=sslTest$(E)
 # Linked files
 STATIC:=../libssl_s.a $(MATRIXSSL_ROOT)/crypto/libcrypt_s.a $(MATRIXSSL_ROOT)/core/libcore_s.a
 
-
 # Generate map file with sections and C source reference for sslTest
 ifndef MATRIX_DEBUG
 ifeq (,$(findstring -apple,$(CCARCH)))
@@ -28,7 +27,6 @@ LDFLAGS += \
  -Wl,-Map="$@.map"
 endif
 endif
-
 
 all: compile
 
@@ -42,14 +40,6 @@ $(TEST_EXE): $(TEST_SRC:.c=.o) $(STATIC)
 
 $(CERT_EXE):$(CERT_SRC:.c=.o) $(STATIC)
 	$(CC) -o $@ $^ $(LDFLAGS)
-
-ifneq (,$(findstring -octeon,$(CCARCH)))
- SIM:=oct-sim
- SIMFLAGS:=-quiet -numcores=1 -noperf
-endif
-
-test:
-	$(SIM) ./$(TEST_EXE) $(SIMFLAGS)
 
 clean:
 	rm -f $(TEST_EXE) $(CERT_EXE) $(OBJS)

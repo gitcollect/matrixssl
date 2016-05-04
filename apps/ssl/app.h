@@ -67,7 +67,6 @@ extern "C" {
 #endif
 #endif /* WIN32 */
 
-
 /******************************************************************************/
 /*
 	 Platform independent socket defines for convenience
