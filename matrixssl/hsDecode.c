@@ -1394,10 +1394,11 @@ int32 parseServerHello(ssl_t *ssl, int32 hsLen, unsigned char **cp,
 				ssl->err = SSL_ALERT_PROTOCOL_VERSION;
 				psTraceInfo("Server wants to talk TLS1.0 but it's disabled\n");
 				return MATRIXSSL_ERROR;
-#endif
+#else
 				ssl->reqMinVer = ssl->minVer;
 				ssl->minVer = TLS_MIN_VER;
 				ssl->flags &= ~SSL_FLAGS_TLS_1_1;
+#endif
 			} else {
 #endif/* USE_TLS_1_1 */
 #ifdef USE_DTLS

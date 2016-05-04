@@ -757,7 +757,7 @@ ADVANCE_TO_APP_DATA:
 				for (rc = (256 - padLen) - 1; rc > 0; rc--) {
 					/* make this test look like the others */
 					if ((unsigned char)rc == padLen) {
-						/* coverity[unused_value] */
+						/* coverity[assigned_value] */
 						macError = 1; /* not really an error.  reset below */
 					}
 				}

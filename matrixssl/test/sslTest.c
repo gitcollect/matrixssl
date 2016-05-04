@@ -1281,17 +1281,17 @@ LBL_FREE:
 
 		} /* End version loop (unindented) */
 #ifdef USE_RSA
-		if (spec->type == CS_RSA) {
+		if (spec && spec->type == CS_RSA) {
 			goto L_NEXT_RSA;
 		}
 #endif
 #ifdef USE_ECC
-		if (spec->type == CS_ECDH_ECDSA || spec->type == CS_ECDHE_ECDSA) {
+		if (spec && (spec->type == CS_ECDH_ECDSA || spec->type == CS_ECDHE_ECDSA)) {
 			goto L_NEXT_ECC;
 		}
 #endif
 #ifdef REQUIRE_DH_PARAMS
-		if (spec->type == CS_DHE_RSA || spec->type == CS_DHE_PSK) {
+		if (spec && (spec->type == CS_DHE_RSA || spec->type == CS_DHE_PSK)) {
 			goto L_NEXT_DH;
 		}
 #endif
@@ -1572,6 +1572,9 @@ static int32 performHandshake(sslConn_t *sendingSide, sslConn_t *receivingSide)
 /*
 	The indata is the outdata from the sending side.  copy it over
 */
+	if (outbufLen <= 0 || inbufLen <= 0) {
+		return PS_FAILURE;
+	}
 	dataSent = min(outbufLen, inbufLen);
 	memcpy(inbuf, outbuf, dataSent);
 
@@ -1746,7 +1749,7 @@ static int32_t throughputTest(sslConn_t *s, sslConn_t *r, uint16_t nrec, uint16_
 		s->appTime += psDiffMsecs(start, end, NULL);
 
 		len = matrixSslGetReadbufOfSize(r->ssl, buflen, &rb);
-		if (len < buflen) {
+		if (buflen <= 0 || len < buflen) {
 			return PS_FAIL;
 		}
 		memcpy(rb, wb, buflen);
@@ -1870,6 +1873,9 @@ SEND_MORE:
 */
 	inBufLen = matrixSslGetReadbuf(receivingSide->ssl, &inBuf);
 
+	if (writeBufLen <= 0 || inBufLen <= 0) {
+		return PS_FAILURE;
+	}
 	dataSent = min(writeBufLen, inBufLen);
 	memcpy(inBuf, writeBuf, dataSent);
 
@@ -2244,5 +2250,4 @@ static void statCback(void *ssl, void *stat_ptr, int32 type, int32 value)
 }
 #endif
 /******************************************************************************/
-
 

@@ -852,12 +852,11 @@ int32 main(int32 argc, char **argv)
 #ifdef USE_ECC_CIPHER_SUITE
 	CAstreamLen += sizeof(ECCAS);
 #endif
-	if (CAstreamLen > 0) {
-		CAstream = psMalloc(NULL, CAstreamLen);
-	} else {
-		/* coverity[dead_error_line] */
-		CAstream = NULL;
-	}
+#if defined(USE_RSA_CIPHER_SUITE) || defined(USE_ECC_CIPHER_SUITE)
+	CAstream = psMalloc(NULL, CAstreamLen);
+#else
+	CAstream = NULL;
+#endif
 
 	CAstreamLen = 0;
 #ifdef USE_RSA_CIPHER_SUITE

@@ -1056,15 +1056,20 @@ static int32 handleResends(SOCKET sock)
 	Set the REUSE flag to minimize the number of sockets in TIME_WAIT
 	Then we set REUSEADDR, NODELAY and NONBLOCK on the socket
 */
-static void setSocketOptions(SOCKET fd)
+static int32_t setSocketOptions(SOCKET fd)
 {
-	int32 rc;
+	int32_t rc;
 
 #ifdef POSIX
-	fcntl(fd, F_SETFD, FD_CLOEXEC);
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
 #endif
 	rc = 1;
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&rc, sizeof(rc));
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&rc, sizeof(rc)) < 0) {
+		return PS_PLATFORM_FAIL;
+	}
+	return PS_SUCCESS;
 }
 
 
@@ -1079,16 +1084,20 @@ static SOCKET newUdpSocket(char *ip, short port, int *err)
 		return INVALID_SOCKET;
 	}
 
-	setSocketOptions(fd);
+	if (setSocketOptions(fd) < 0) {
+		*err = SOCKET_ERRNO;
+		close(fd);
+		return INVALID_SOCKET;
+	}
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	if (ip == NULL) {
 		addr.sin_addr.s_addr = INADDR_ANY;
 		if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
-			close(fd);
 			_psTrace("Can't bind socket. Port in use or permission problem\n");
 			*err = SOCKET_ERRNO;
+			close(fd);
 			return INVALID_SOCKET;
 		}
 	}

@@ -486,11 +486,15 @@ int32 psGetFileBuf(psPool_t *pool, const char *fileName, unsigned char **buf,
 	if (fileName == NULL) {
 		return PS_ARG_FAIL;
 	}
-	if ((fp = fopen(fileName, "r")) == NULL || fstat(fileno(fp), &f_stat) != 0) {
+	if ((fp = fopen(fileName, "r")) == NULL) {
 		psTraceStrCore("Unable to open %s\n", (char*)fileName);
 		return PS_PLATFORM_FAIL;
 	}
-
+ 	if (fstat(fileno(fp), &f_stat) != 0) {
+		fclose(fp);
+		psTraceStrCore("Unable to stat %s\n", (char*)fileName);
+		return PS_PLATFORM_FAIL;
+	}
 	*buf = psMalloc(pool, (size_t)(f_stat.st_size + 1));
 	if (*buf == NULL) {
 		fclose(fp);

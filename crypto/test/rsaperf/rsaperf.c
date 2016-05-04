@@ -518,6 +518,7 @@ int main(int argc, char **argv)
 		memset(in, 0x0, keysize);
 
 		psGetTime(&start, NULL);
+		/* coverity[swapped_arguments] */
 		if (psRsaDecryptPriv(pool, &privkey, out, keysize, in, 5, pkaInfo) < 0) {
 			_psTrace("	FAILED DECRYPT OPERATION\n");
 		}
