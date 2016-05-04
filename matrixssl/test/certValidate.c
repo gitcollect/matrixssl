@@ -203,7 +203,9 @@ int32 main(int32 argc, char **argv)
 	psAssert(faildate == 0);
 
 	flags = depth = 0;
-	printf("  Validate %s:%s rc %d\n", argv[2], cert->subject.commonName, rc);
+	if (cert) {
+		printf("  Validate %s:%s rc %d\n", argv[2], cert->subject.commonName, rc);
+	}
 	for (cert = chain, i = 0; cert != NULL; cert = cert->next, i++) {
 		printf("    [%d] authStatus=%d, authFailFlags=%u\n",
 			i, cert->authStatus, cert->authFailFlags);
