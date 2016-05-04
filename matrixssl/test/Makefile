@@ -42,5 +42,5 @@ $(CERT_EXE):$(CERT_SRC:.c=.o) $(STATIC)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f $(TEST_EXE) $(CERT_EXE) $(OBJS)
+	rm -f $(TEST_EXE) $(CERT_EXE) $(OBJS) *.map
 
