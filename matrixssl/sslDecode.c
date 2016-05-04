@@ -1594,6 +1594,7 @@ static int32 parseSSLHandshake(ssl_t *ssl, char *inbuf, uint32 len)
 
 	/* Immediately check if we are working with a fragmented message. */
 #ifdef USE_DTLS
+	msn = 0;
 	/* This is the non-DTLS fragmentation handler */
 	if (!(ssl->flags & SSL_FLAGS_DTLS)) {
 #endif
