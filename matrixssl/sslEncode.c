@@ -1012,7 +1012,7 @@ static int32 nowDoCkePka(ssl_t *ssl)
 */
 int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 {
-	int32			messageSize;
+	int32			messageSize = 0;
 	int32			rc = MATRIXSSL_ERROR;
 	uint32			alertReqLen;
 #if defined(USE_SERVER_SIDE_SSL) || defined(USE_CLIENT_AUTH)
@@ -1339,7 +1339,7 @@ int32 sslEncodeResponse(ssl_t *ssl, psBuf_t *out, uint32 *requiredLen)
 			This is the entry point for a server encoding the first flight
 			of a non-DH, non-client-auth handshake.
 */
-			messageSize = stotalCertLen = 0;
+			stotalCertLen = 0;
 #ifdef USE_PSK_CIPHER_SUITE
 			if (ssl->flags & SSL_FLAGS_PSK_CIPHER) {
 /*
@@ -2164,7 +2164,7 @@ void clearFlightList(ssl_t *ssl)
 {
 	flightEncode_t *msg, *next;
 
-	next = msg = ssl->flightEncode;
+	msg = ssl->flightEncode;
 	while (msg) {
 		next = msg->next;
 		psFree(msg, ssl->flightPool);
@@ -4161,7 +4161,7 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 					certLen = cert->binLen;
 					midWrite = 0;
 					if (certLen > 0) {
-						if (countDown < 3) {
+						if (countDown <= 3) {
 							/* Fragment falls right on cert len write.  Has
 								to be at least one byte or countDown would have
 								been 0 and got us out of here already*/
@@ -4204,9 +4204,10 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 			}
 			out->end = c;
 		} else {
-/*
-			Not-first fragments
-*/
+			/* Not-first fragments */
+			if (!cert) {
+				return PS_FAIL;
+			}
 			if (midSizeWrite > 0) {
 				messageSize = midSizeWrite;
 			} else {
@@ -4270,9 +4271,12 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 
 			while (countDown > 0) {
 				cert = cert->next;
+				if (!cert) {
+					return PS_FAIL;
+				}
 				certLen = cert->binLen;
 				midWrite = 0;
-				if (countDown < 3) {
+				if (countDown <= 3) {
 					/* Fragment falls right on cert len write */
 					*c = (unsigned char)((certLen & 0xFF0000) >> 16);
 					c++; countDown--;
@@ -4281,9 +4285,6 @@ static int32 writeMultiRecordCertificate(ssl_t *ssl, sslBuf_t *out,
 						*c = (certLen & 0xFF00) >> 8; c++; countDown--;
 						midSizeWrite = 1;
 						if (countDown != 0) {
-#ifdef TODO
-/* Cannot reach here!, countdown is always zero */
-#endif
 							*c = (certLen & 0xFF); c++; countDown--;
 							midSizeWrite = 0;
 						}
@@ -6560,6 +6561,9 @@ static int32 writeCertificateRequest(ssl_t *ssl, sslBuf_t *out, int32 certLen,
 		*c = ((certLen + (certCount * 2))& 0xFF00) >> 8; c++;
 		*c = (certLen + (certCount * 2)) & 0xFF; c++;
 		while (cert) {
+			if (cert->subject.dnenc == NULL) {
+				return PS_FAIL;
+			}
 			*c = (cert->subject.dnencLen & 0xFF00) >> 8; c++;
 			*c = cert->subject.dnencLen & 0xFF; c++;
 			memcpy(c, cert->subject.dnenc, cert->subject.dnencLen);
@@ -6587,7 +6591,7 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 	psX509Cert_t	*cert, *future;
 	unsigned char	*c, *end, *encryptStart;
 	uint8_t			padLen;
-	uint16_t		messageSize, dnencLen;
+	uint16_t		messageSize, dnencLen = 0;
 	int32			midWrite, midSizeWrite, countDown, firstOne = 1;
 	int32_t			rc;
 
@@ -6664,6 +6668,9 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 			*c = (certLen + (certCount * 2)) & 0xFF; c++;
 			countDown -= ssl->hshakeHeadLen + 2;
 			while (cert) {
+				if (cert->subject.dnenc == NULL) {
+					return PS_FAIL;
+				}
 				midWrite = 0;
 				dnencLen = cert->subject.dnencLen;
 				if (dnencLen > 0) {
@@ -6698,6 +6705,9 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 			}
 			out->end = c;
 		} else {
+			if (cert == NULL || cert->subject.dnenc == NULL) {
+				return PS_FAIL;
+			}
 			/*	Not-first fragments */
 			if (midSizeWrite > 0) {
 				messageSize = midSizeWrite;
@@ -6752,6 +6762,9 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 			}
 			while (countDown > 0) {
 				cert = cert->next;
+				if (cert == NULL || cert->subject.dnenc == NULL) {
+					return PS_FAIL;
+				}
 				dnencLen =  cert->subject.dnencLen;
 				midWrite = 0;
 				if (countDown < 2) {
@@ -6774,7 +6787,6 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 				if (countDown == 0) {
 					break;
 				}
-
 			}
 			if ((rc = postponeEncryptRecord(ssl, SSL_RECORD_TYPE_HANDSHAKE,
 					SSL_HS_CERTIFICATE_REQUEST, messageSize, padLen,
@@ -6789,10 +6801,8 @@ static int32 writeMultiRecordCertRequest(ssl_t *ssl, sslBuf_t *out,
 	out->end = c;
 	return MATRIXSSL_SUCCESS;
 }
-
 #endif /* USE_SERVER_SIDE && USE_CLIENT_AUTH */
 #endif /* !USE_ONLY_PSK_CIPHER_SUITE */
-
 
 #ifdef USE_DTLS
 #ifdef USE_SERVER_SIDE_SSL

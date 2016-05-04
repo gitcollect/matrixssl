@@ -117,7 +117,7 @@ int32 matrixSslDecode(ssl_t *ssl, unsigned char **buf, uint32 *len,
 {
 	unsigned char	*c, *p, *end, *pend, *ctStart, *origbuf;
 	unsigned char	*mac;
-	volatile unsigned char   macError;
+	unsigned char	macError;
 	int32			rc;
 	unsigned char	padLen;
 #ifdef USE_CLIENT_SIDE_SSL
@@ -761,6 +761,7 @@ ADVANCE_TO_APP_DATA:
 						macError = 1; /* not really an error.  reset below */
 					}
 				}
+				(void)macError; /* Suppress static analysis warnings */
 				macError = 0;
 			} else {
 				/* Lucky 13 step 3 and 4 condition:  Then let P' denote the ﬁrst

@@ -103,27 +103,6 @@
  #endif
 #endif
 
-/******************************************************************************/
-/**
-	Below this point, no configurations should be automatically set or unset
-	Above, it's allowed to a point.
-*/
-
-/**
-	Allow only FIPS approved algorithm configuration.
-	FIPSLib runtime will not support these algorithms anyway, but this is a configuration
-	time check
-*/
-
-/**
-	NIST mode configuration checks.
-	Allow NIST_SHALL NIST_SHOULD and NIST_MAY algorithm configuration.
-	Warn on NIST_SHOULD_NOT
-	Error on NIST_SHALL_NOT
-*/
-#ifdef USE_NIST_RECOMMENDATIONS
-#endif
-
 #endif /* _h_PS_CRYPTOCHECK */
 
 /******************************************************************************/

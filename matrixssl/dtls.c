@@ -890,15 +890,13 @@ static int32 dtlsGetNextRecordLen(ssl_t *ssl, int32 pmtu, sslBuf_t *out,
 	unsigned char	*newend;
 
 	newend = out->start;
-	tlen = len = 0;
 /*
 	If pmtu is <= 0 the user wants a single record regardless
 */
 	if (pmtu <= 0) {
 		newend += ssl->recordHeadLen - 2; /* Find the last two bytes of len */
-		len += (int32)*newend << 8; newend++;
-		len += (int32)*newend; newend++;
-		newend += len;
+		len = (int32)(newend[0]) << 8;
+		len += newend[1];
 		len += ssl->recordHeadLen;	/* add record header length to the total */
 		*recordLen = len;
 		return 0;
@@ -916,6 +914,7 @@ static int32 dtlsGetNextRecordLen(ssl_t *ssl, int32 pmtu, sslBuf_t *out,
 /*
 	Otherwise, send as much as will fit
 */
+	tlen = len = 0;
 	while (out->end > newend) {
 		newend += ssl->recordHeadLen - 2; /* Find the last two bytes of len */
 		len = (int32)*newend << 8; newend++;

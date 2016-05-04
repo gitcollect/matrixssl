@@ -2950,7 +2950,6 @@ int32 psX509AuthenticateCert(psPool_t *pool, psX509Cert_t *subjectCert,
 		The magic 10 is comprised of the SEQUENCE and ALGORITHM ID overhead.
 		The magic 9, 8, or 5 is the OID length of the corresponding algorithm.
 */
-		sigType = PS_UNSUPPORTED_FAIL;
 		switch (sc->sigAlgorithm) {
 #ifdef USE_RSA
 #ifdef ENABLE_MD5_SIGNED_CERTS

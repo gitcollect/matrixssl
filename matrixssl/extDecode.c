@@ -291,6 +291,7 @@ static int ClientHelloExt(ssl_t *ssl, unsigned short extType, unsigned short ext
 			ssl->err = SSL_ALERT_ILLEGAL_PARAMETER;
 			return MATRIXSSL_ERROR;
 		}
+		(void)i; /* TODO - validate against length determined below */
 		extLen -= 3;
 		i = *c << 8; c++;
 		i += *c; c++;

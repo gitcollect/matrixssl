@@ -470,19 +470,17 @@ int main(int argc, char ** argv)
 	rc = 0;
 	ssl = NULL;
 	dtlsCtx = NULL;
+	CAstream = NULL;
 	sock = INVALID_SOCKET;
 
-	/* parse input arguments */
 	if (0 != process_cmd_options(argc, argv)) {
 		usage();
 		return 0;
 	}
-
 	if (sigsetup() < 0) {
 		_psTrace("Init error creating signal handlers\n");
 		return DTLS_FATAL;
 	}
-
 	if (matrixSslOpen() < 0) {
 		_psTrace("Init error opening MatrixDTLS library\n");
 		return DTLS_FATAL;
@@ -492,17 +490,9 @@ int main(int argc, char ** argv)
 		matrixSslClose();
 		return DTLS_FATAL;
 	}
-
 	if ((rc = initClientList(MAX_CLIENTS)) < 0) {
 		_psTrace("Init error opening client list\n");
 		goto MATRIX_EXIT;
-	}
-
-	recvfromBufLen = matrixDtlsGetPmtu();
-	if ((recvfromBuf = psMalloc(MATRIX_NO_POOL, recvfromBufLen)) == NULL) {
-		rc = PS_MEM_FAIL;
-		_psTrace("Init error allocating receive buffer\n");
-		goto CLIENT_EXIT;
 	}
 
 #ifdef USE_HEADER_KEYS
@@ -564,17 +554,14 @@ int main(int argc, char ** argv)
 			break;
 		default:
 			_psTraceInt("Invalid RSA key length (%d)\n", g_rsaKeySize);
-			return -1;
+			goto CLIENT_EXIT;
 	}
 
 	if ((rc = matrixSslLoadRsaKeysMem(keys, (const unsigned char *)certValue,
 			certLen, (const unsigned char *)keyValue, keyLen, CAstream,
 			CAstreamLen)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream, NULL);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
 
@@ -595,17 +582,14 @@ int main(int argc, char ** argv)
 			break;
 		default:
 			_psTraceInt("Invalid ECDH_RSA key length (%d)\n", g_ecdhKeySize);
-			return -1;
+			goto CLIENT_EXIT;
 	}
 
 	if ((rc = matrixSslLoadEcKeysMem(keys, (const unsigned char *)certValue,
 				certLen, (const unsigned char *)keyValue, keyLen, CAstream,
 				CAstreamLen)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream, NULL);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
 
@@ -643,28 +627,22 @@ int main(int argc, char ** argv)
 			break;
 		default:
 			_psTraceInt("Invalid ECC key length (%d)\n", g_eccKeySize);
-			return -1;
+			goto CLIENT_EXIT;
 	}
 
 	if ((rc = matrixSslLoadEcKeysMem(keys, certValue, certLen,
 			keyValue, keyLen, CAstream, CAstreamLen)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream, NULL);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
 
 #ifdef REQUIRE_DH_PARAMS
-	if (matrixSslLoadDhParamsMem(keys, DHPARAM2048, DHPARAM2048_SIZE)
-			< 0) {
+	if (matrixSslLoadDhParamsMem(keys, DHPARAM2048, DHPARAM2048_SIZE) < 0) {
 		_psTrace("Unable to load DH parameters\n");
 	}
 #endif /* DH_PARAMS */
 
-
-	psFree(CAstream, NULL);
 #else /* USE_HEADER_KEYS */
 /*
 	File based keys
@@ -672,13 +650,14 @@ int main(int argc, char ** argv)
 */
 	CAstreamLen = 0;
 #ifdef USE_RSA
-	if (g_rsaKeySize == 3072)
+	if (g_rsaKeySize == 3072) {
 		CAstreamLen += (int32)strlen(rsaCA3072File) + 1;
-	else
+	} else {
 		CAstreamLen += (int32)strlen(rsaCAFile) + 1;
-#ifdef USE_ECC
+	}
+ #ifdef USE_ECC
 	CAstreamLen += (int32)strlen(ecdhRsaCAFile) + 1;
-#endif
+ #endif
 #endif
 #ifdef USE_ECC
 	CAstreamLen += (int32)strlen(ecCAFile) + 1;
@@ -691,8 +670,7 @@ int main(int argc, char ** argv)
 	if (g_rsaKeySize == 3072) {
 		memcpy(CAstream, rsaCA3072File,	strlen(rsaCA3072File));
 		CAstreamLen += strlen(rsaCA3072File);
-	}
-	else {
+	} else {
 		memcpy(CAstream, rsaCAFile,	strlen(rsaCAFile));
 		CAstreamLen += strlen(rsaCAFile);
 	}
@@ -714,22 +692,15 @@ int main(int argc, char ** argv)
 	if ((rc = matrixSslLoadRsaKeys(keys, rsaCertFile, rsaPrivkeyFile, NULL,
 			(char*)CAstream)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
-
 
 #ifdef EXAMPLE_ECDH_RSA_KEYS
 	if ((rc = matrixSslLoadEcKeys(keys, ecdhRsaCertFile, ecdhRsaPrivkeyFile,
 			NULL, (char*)CAstream)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
 
@@ -737,10 +708,7 @@ int main(int argc, char ** argv)
 	if ((rc = matrixSslLoadEcKeys(keys, ecCertFile, ecPrivkeyFile, NULL,
 			(char*)CAstream)) < 0) {
 		_psTrace("No certificate material loaded.  Exiting\n");
-		psFree(CAstream);
-		matrixSslDeleteKeys(keys);
-		matrixSslClose();
-		return rc;
+		goto CLIENT_EXIT;
 	}
 #endif
 
@@ -750,10 +718,10 @@ int main(int argc, char ** argv)
 	}
 #endif
 
-
-	psFree(CAstream);
 #endif /* USE_HEADER_KEYS */
 
+	psFree(CAstream, NULL);
+	CAstream = NULL;
 
 #ifdef USE_PSK_CIPHER_SUITE
 	/* The first ID is considered as null-terminiated string for
@@ -775,6 +743,12 @@ int main(int argc, char ** argv)
     }
 #endif /* PSK */
 
+	recvfromBufLen = matrixDtlsGetPmtu();
+	if ((recvfromBuf = psMalloc(MATRIX_NO_POOL, recvfromBufLen)) == NULL) {
+		rc = PS_MEM_FAIL;
+		_psTrace("Init error allocating receive buffer\n");
+		goto CLIENT_EXIT;
+	}
 
 	if ((sock = newUdpSocket(NULL, DTLS_PORT, &err)) == INVALID_SOCKET) {
 		_psTrace("Error creating UDP socket\n");
@@ -782,9 +756,7 @@ int main(int argc, char ** argv)
 	}
 	_psTraceInt("DTLS server running on port %d\n", DTLS_PORT);
 
-/*
-	Server loop
-*/
+	/* Server loop */
 	for (exitFlag = 0; exitFlag == 0;) {
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
@@ -960,6 +932,9 @@ PROCESS_MORE_FROM_BUFFER:
 DTLS_EXIT:
 	psFree(recvfromBuf, NULL);
 CLIENT_EXIT:
+	if (CAstream) {
+		psFree(CAstream, NULL);
+	}
 	closeClientList();
 MATRIX_EXIT:
 	matrixSslDeleteKeys(keys);
@@ -1058,7 +1033,7 @@ static int32 handleResends(SOCKET sock)
 */
 static int32_t setSocketOptions(SOCKET fd)
 {
-	int32_t rc;
+	int32 rc;
 
 #ifdef POSIX
 	if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {

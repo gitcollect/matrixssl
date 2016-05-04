@@ -490,7 +490,7 @@ int32 psGetFileBuf(psPool_t *pool, const char *fileName, unsigned char **buf,
 		psTraceStrCore("Unable to open %s\n", (char*)fileName);
 		return PS_PLATFORM_FAIL;
 	}
- 	if (fstat(fileno(fp), &f_stat) != 0) {
+	if (fstat(fileno(fp), &f_stat) != 0) {
 		fclose(fp);
 		psTraceStrCore("Unable to stat %s\n", (char*)fileName);
 		return PS_PLATFORM_FAIL;

@@ -68,7 +68,7 @@ static char *flagstostr(int flags)
 		if (flags & PS_CERT_AUTH_FAIL_DATE_FLAG) {
 			s += sprintf(s, "DATE ");
 		}
-		s += sprintf(s, ")");
+		sprintf(s, ")");
 		return f;
 	}
 	return "";

@@ -1446,7 +1446,7 @@ int32_t pkcs1ParsePrivFile(psPool_t *pool, const char *fileName,
 int32_t pkcs1DecodePrivFile(psPool_t *pool, const char *fileName,
 				const char *password, unsigned char **DERout, uint16_t *DERlen)
 {
-	unsigned char	*keyBuf;
+	unsigned char	*keyBuf, *dout;
 	char			*start, *end, *endTmp;
 	int32			keyBufLen, rc;
 	uint32			PEMlen = 0;
@@ -1529,20 +1529,20 @@ int32_t pkcs1DecodePrivFile(psPool_t *pool, const char *fileName,
 	}
 
 	/* Take the raw input and do a base64 decode */
-	*DERout = psMalloc(pool, PEMlen);
-	if (*DERout == NULL) {
+	dout = psMalloc(pool, PEMlen);
+	if (dout == NULL) {
 		psFree(keyBuf, pool);
 		psError("Memory allocation error in pkcs1DecodePrivFile\n");
 		return PS_MEM_FAIL;
 	}
 	*DERlen = PEMlen;
-	if ((rc = psBase64decode((unsigned char*)start, PEMlen, *DERout,
-			DERlen)) != 0) {
+	if ((rc = psBase64decode((unsigned char*)start, PEMlen, dout,
+			DERlen)) < 0) {
 		psTraceCrypto("Error base64 decode of private key\n");
 		if (password) {
 			psTraceCrypto("Is it possible the password is incorrect?\n");
 		}
-		psFree(*DERout, pool);
+		psFree(dout, pool);
 		psFree(keyBuf, pool);
 		return rc;
 	}
@@ -1551,19 +1551,19 @@ int32_t pkcs1DecodePrivFile(psPool_t *pool, const char *fileName,
 #ifdef USE_PKCS5
 	if (encrypted == 1 && password) {
 		psDes3Init(&dctx, cipherIV, passKey);
-		psDes3Decrypt(&dctx, *DERout, *DERout, *DERlen);
+		psDes3Decrypt(&dctx, dout, dout, *DERlen);
 		memset_s(&dctx, sizeof(psDes3_t), 0x0, sizeof(psDes3_t));
 	}
 	if (encrypted == 2 && password) {
 		/* AES 128 */
 		psAesInitCBC(&actx, cipherIV, passKey, 16, PS_AES_DECRYPT);
-		psAesDecryptCBC(&actx, *DERout, *DERout, *DERlen);
+		psAesDecryptCBC(&actx, dout, dout, *DERlen);
 		memset_s(&actx, sizeof(psAesCbc_t), 0x0, sizeof(psAesCbc_t));
 	}
 	/* SECURITY - zero out keys when finished */
 	memset_s(passKey, sizeof(passKey), 0x0, sizeof(passKey));
-	
 #endif /* USE_PKCS5 */
+	*DERout = dout;
 
 	return PS_SUCCESS;
 }

@@ -858,11 +858,11 @@ static int32 process_cmd_options(int32 argc, char **argv)
  */
 int32 main(int32 argc, char **argv)
 {
-	int32			rc, CAstreamLen, i;
-	sslKeys_t		*keys;
-	sslSessionId_t	*sid;
+	int32				rc, CAstreamLen, i;
+	sslKeys_t			*keys;
+	sslSessionId_t		*sid = NULL;
 	struct g_sslstats	stats;
-	unsigned char	       *CAstream;
+	unsigned char		*CAstream;
 #ifdef USE_CRL
 	int32			numLoaded;
 #endif
@@ -920,7 +920,6 @@ int32 main(int32 argc, char **argv)
 #ifdef USE_ECC_CIPHER_SUITE
 	CAstreamLen += sizeof(ECCAS);
 #endif
-
 #if defined(USE_RSA_CIPHER_SUITE) || defined(USE_ECC_CIPHER_SUITE)
 	CAstream = psMalloc(NULL, CAstreamLen);
 #else
@@ -940,6 +939,7 @@ int32 main(int32 argc, char **argv)
 	memcpy(CAstream + CAstreamLen, ECCAS, sizeof(ECCAS));
 	CAstreamLen += sizeof(ECCAS);
 #endif
+
 
 #ifdef ID_RSA
 	rc = loadRsaKeys(g_key_len, keys, CAstream, CAstreamLen);
@@ -1065,7 +1065,6 @@ int32 main(int32 argc, char **argv)
 	_psTraceInt("CRLs loaded: %d\n", numLoaded);
 #endif
 
-
 	memset(&stats, 0x0, sizeof(struct g_sslstats));
 	printf("=== %d new connections ===\n", g_new);
 
@@ -1074,7 +1073,7 @@ int32 main(int32 argc, char **argv)
 			the server for automated tests */
 		g_closeServer = 1;
 		g_bytes_requested = 0; /* Disable data exchange in this case */
-		g_new++;
+		g_new = 1;
 	}
 
 	for (i = 0; i < g_new; i++) {
@@ -1089,7 +1088,7 @@ int32 main(int32 argc, char **argv)
 		/* Leave the final sessionID for resumed connections */
 		if (i + 1 < g_new) matrixSslDeleteSessionId(sid);
 	}
-	if (g_new) printf("\n");
+	printf("\n");
 	if (g_bytes_requested > 0) {
 		psAssert(g_bytes_requested * g_new == stats.rbytes);
 	}
@@ -1322,9 +1321,9 @@ static int32 certCb(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 		_psTrace("ERROR: Problem in certificate validation.  Exiting.\n");
 	}
 
-
-	if (g_trace && alert == 0) _psTraceStr("SUCCESS: Validated cert for: %s.\n",
-		cert->subject.commonName);
+	if (g_trace && alert == 0 && cert) {
+		_psTraceStr("SUCCESS: Validated cert for: %s.\n", cert->subject.commonName);
+	}
 
 #endif /* !USE_ONLY_PSK_CIPHER_SUITE */
 	return alert;

@@ -2504,13 +2504,12 @@ int32_t psEccDsaSign(psPool_t *pool, const psEccKey_t *privKey,
 	pstm_int		r, s;
 	pstm_int		e, p;
 	uint16_t		radlen;
-	int32_t			err;
+	int32_t			err = PS_MEM_FAIL;
 	uint16_t		olen, rLen, sLen;
 	uint32_t		rflag, sflag, sanity;
 	unsigned char	*negative;
 
 	rflag = sflag = 0;
-	err = 0;
 
 	/* is this a private key? */
 	if (privKey->type != PS_PRIVKEY) {
@@ -2521,7 +2520,6 @@ int32_t psEccDsaSign(psPool_t *pool, const psEccKey_t *privKey,
 	if (buflen > privKey->curve->size) {
 		buflen = privKey->curve->size;
 	}
-	err = PS_MEM_FAIL;
 
 	radlen = privKey->curve->size * 2;
 	if (pstm_init_for_read_unsigned_bin(pool, &p, privKey->curve->size) < 0) {
@@ -2667,9 +2665,7 @@ int32_t psEccDsaSign(psPool_t *pool, const psEccKey_t *privKey,
 	if ((err = pstm_to_unsigned_bin(pool, &s, sig)) != PSTM_OKAY) {
 		goto error;
 	}
-	sig += sLen - sflag;  /* Moved forward sflag already */
 	*siglen += sLen + 2;
-
 	err = PS_SUCCESS;
 	goto errnokey;
 
