@@ -34,9 +34,7 @@
 
 #include "matrixssl/matrixsslApi.h"
 
-#ifndef USE_DTLS
- #error USE_DTLS must be defined in matrixsslConfig.h
-#endif
+#ifdef USE_DTLS
 
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +57,6 @@
 #define close			closesocket
 #define MSG_DONTWAIT	0
 #endif /* WIN32 */
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,6 +113,7 @@ extern int32 udpSend(SOCKET s, unsigned char *buf, int len,
 }
 #endif
 
+#endif /* USE_DTLS */
 #endif /* _h_DTLSCOMMON */
 
 /******************************************************************************/

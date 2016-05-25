@@ -31,6 +31,8 @@
 
 #include "dtlsCommon.h"
 
+#ifdef USE_DTLS
+
 #ifdef DTLS_PACKET_LOSS_TEST
 static int num_dropped = 0;
 #endif /* DTLS_PACKET_LOSS_TEST */
@@ -121,3 +123,5 @@ int32 udpSend(SOCKET s, unsigned char *buf, int len,
 #endif /* DTLS_PACKET_LOSS_TEST */
 	return len;
 }
+
+#endif /* USE_DTLS */

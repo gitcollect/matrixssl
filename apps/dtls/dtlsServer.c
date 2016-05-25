@@ -39,6 +39,9 @@
 #endif
 
 #include "dtlsCommon.h"
+
+#ifdef USE_DTLS
+
 #include "../../crypto/cryptoApi.h"
 
 /* #define USE_CERT_VALIDATOR */
@@ -1265,3 +1268,18 @@ static void closeClientList()
 	psFree(clientTable, NULL);
 	tableSize = 0;
 }
+
+#else
+/******************************************************************************/
+/*
+    Stub main for compiling without dtls enabled
+*/
+int32 main(int32 argc, char **argv)
+{
+    printf("USE_DTLS must be enabled in " \
+            "matrixsslConfig.h at build time to run this application\n");
+    return -1;
+}
+#endif /* USE_DTLS */
+
+/******************************************************************************/

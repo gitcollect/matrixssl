@@ -34,7 +34,7 @@
 
 #include "dtlsCommon.h"
 
-#ifdef USE_CLIENT_SIDE_SSL
+#if defined(USE_DTLS) && defined(USE_CLIENT_SIDE_SSL)
 
 static int packet_loss_prob = 0; /* Reciprocal of packet loss probability
 									(i.e. P(packet loss) = 1/x).
@@ -1087,15 +1087,15 @@ static int32 certCb(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 #else
 /******************************************************************************/
 /*
-	Stub main for compiling without client enabled
+	Stub main for compiling without dtls and client enabled
 */
 int32 main(int32 argc, char **argv)
 {
-	printf("USE_CLIENT_SIDE_SSL must be enabled in matrixsslConfig.h at build" \
-			" time to run this application\n");
+	printf("USE_DTLS and USE_CLIENT_SIDE_SSL must be enabled in " \
+			"matrixsslConfig.h at build time to run this application\n");
 	return -1;
 }
-#endif /* USE_CLIENT_SIDE_SSL */
+#endif /* USE_DTLS && USE_CLIENT_SIDE_SSL */
 
 /******************************************************************************/
 
